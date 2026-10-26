@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+source "$(dirname "$0")/common.sh"
+
+invocation=${1:?usage: tools/artifact <BuildBuddy invocation id>}
+
+details=$(buildbuddy GetInvocation "$(jq -n --arg id "$invocation" '{selector: {invocation_id: $id}, include_artifacts: true, include_child_invocations: true}')")
+if [[ $(jq -r '.invocation[0].success' <<< "$details") != true ]]; then
+    echo "remote build $invocation failed" >&2
+    exit 1
+fi
+
+mapfile -t archives < <(jq -r '[.invocation[].artifacts[]? | select(.name | endswith(".tar.zst"))][].name' <<< "$details")
+if (( ${#archives[@]} != 1 )); then
+    echo "remote build $invocation uploaded ${#archives[@]} archives instead of one" >&2
+    exit 1
+fi
+
+mkdir -p "$OUT"
+for file in "${archives[0]}" "${archives[0]}.sha256"; do
+    uri=$(jq -r --arg file "$file" '[.invocation[].artifacts[]? | select(.name == $file)][0].uri // ""' <<< "$details")
+    if [[ -z $uri ]]; then
+        echo "remote build $invocation did not upload $file" >&2
+        exit 1
+    fi
+    buildbuddy GetFile "$(jq -n --arg uri "$uri" '{uri: $uri}')" > "$OUT/$file"
+done
+(cd "$OUT" && sha256sum -c "${archives[0]}.sha256")
+echo "$OUT/${archives[0]}"

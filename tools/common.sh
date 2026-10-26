@@ -13,6 +13,12 @@ export MOZBUILD_STATE_PATH=${MOZBUILD_STATE_PATH:-$WORK/mozbuild}
 export SCCACHE_DIR=${SCCACHE_DIR:-$WORK/sccache}
 export SCCACHE_CACHE_SIZE=${SCCACHE_CACHE_SIZE:-30G}
 
+buildbuddy() {
+    : "${BUILDBUDDY_API_KEY:?BUILDBUDDY_API_KEY must hold a BuildBuddy API key}"
+    curl -sSf -H "x-buildbuddy-api-key: $BUILDBUDDY_API_KEY" -H 'Content-Type: application/json' \
+        -d "$2" "https://app.buildbuddy.io/api/v1/$1"
+}
+
 revision() {
     git -C "$ROOT" rev-parse --short=12 HEAD
 }

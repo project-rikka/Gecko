@@ -166,6 +166,9 @@ export class RikkaUserContentChild extends JSWindowActorChild {
     if (!handlers) {
       const root = Cu.createObjectIn(scope, { defineAs: "rikka" });
       handlers = Cu.createObjectIn(root, { defineAs: "messageHandlers" });
+      if (world !== null) {
+        Cu.evalInSandbox("window.rikka = rikka;", scope, "latest", `rikka:${world}:handlers`, 1);
+      }
       this.#handlerRoots.set(world, handlers);
     }
     const target = Cu.createObjectIn(handlers, { defineAs: handler.name });

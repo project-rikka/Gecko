@@ -1,18 +1,11 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/common.sh"
 
-: "${BUILDBUDDY_API_KEY:?BUILDBUDDY_API_KEY must hold a BuildBuddy API key}"
 profile=${1:-dev}
 case $profile in
     dev | release) ;;
     *) echo "usage: tools/remote [dev|release]" >&2; exit 2 ;;
 esac
-
-api=https://app.buildbuddy.io/api/v1
-call() {
-    curl -sSf -H "x-buildbuddy-api-key: $BUILDBUDDY_API_KEY" -H 'Content-Type: application/json' \
-        -d "$2" "$api/$1"
-}
 
 git -C "$ROOT" update-index -q --refresh
 if ! git -C "$ROOT" diff --quiet HEAD; then
@@ -55,15 +48,15 @@ request=$(jq -n --arg repository "$repository" --arg commit "$commit" --arg scri
     wait_until: "STARTED"
 }')
 
-invocation=$(call Run "$request" | jq -r .invocationId)
+invocation=$(buildbuddy Run "$request" | jq -r .invocationId)
 echo "https://app.buildbuddy.io/invocation/$invocation"
 
 page=""
 while :; do
-    status=$(call GetInvocation "$(jq -n --arg id "$invocation" '{selector: {invocation_id: $id}}')" \
+    status=$(buildbuddy GetInvocation "$(jq -n --arg id "$invocation" '{selector: {invocation_id: $id}}')" \
         | jq -r '.invocation[0].invocationStatus // ""')
     while :; do
-        log=$(call GetLog "$(jq -n --arg id "$invocation" --arg page "$page" '{selector: {invocation_id: $id}, page_token: $page}')")
+        log=$(buildbuddy GetLog "$(jq -n --arg id "$invocation" --arg page "$page" '{selector: {invocation_id: $id}, page_token: $page}')")
         printf '%s' "$(jq -r '.log.contents // ""' <<< "$log")"
         next=$(jq -r '.nextPageToken // ""' <<< "$log")
         [[ -z $next || $next == "$page" ]] && break
@@ -73,20 +66,4 @@ while :; do
     sleep 15
 done
 
-details=$(call GetInvocation "$(jq -n --arg id "$invocation" '{selector: {invocation_id: $id}, include_artifacts: true, include_child_invocations: true}')")
-if [[ $(jq -r '.invocation[0].bazelExitCode' <<< "$details") != Success ]]; then
-    echo "remote build failed" >&2
-    exit 1
-fi
-
-mkdir -p "$OUT"
-name=$(artifact_name)
-for file in "$name.tar.zst" "$name.tar.zst.sha256"; do
-    uri=$(jq -r --arg file "$file" '[.invocation[].artifacts[]? | select(.name == $file)][0].uri // ""' <<< "$details")
-    if [[ -z $uri ]]; then
-        echo "the run did not upload $file" >&2
-        exit 1
-    fi
-    call GetFile "$(jq -n --arg uri "$uri" '{uri: $uri}')" > "$OUT/$file"
-done
-(cd "$OUT" && sha256sum -c "$name.tar.zst.sha256")
+exec "$ROOT/tools/artifact" "$invocation"
