@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches: [main]
-    paths-ignore: &engine-independent
+    paths-ignore:
       - protocol/**
       - .github/dependabot.yml
       - .github/workflows/protocol.yml
@@ -12,7 +12,14 @@ on:
       - flake.lock
       - LICENSE
   pull_request:
-    paths-ignore: *engine-independent
+    paths-ignore:
+      - protocol/**
+      - .github/dependabot.yml
+      - .github/workflows/protocol.yml
+      - .github/workflows/upstream.yml
+      - flake.nix
+      - flake.lock
+      - LICENSE
   workflow_dispatch:
 
 permissions:
