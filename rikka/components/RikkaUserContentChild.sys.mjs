@@ -161,7 +161,7 @@ export class RikkaUserContentChild extends JSWindowActorChild {
     }
     this.#exposed.add(key);
 
-    const scope = this.#scope(world);
+    const scope = world === null ? Cu.waiveXrays(this.contentWindow) : this.#sandbox(world);
     let handlers = this.#handlerRoots.get(world);
     if (!handlers) {
       const root = Cu.createObjectIn(scope, { defineAs: "rikka" });
