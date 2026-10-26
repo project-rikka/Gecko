@@ -1,0 +1,31 @@
+diff --git a/mobile/shared/components/geckoview/components.conf b/mobile/shared/components/geckoview/components.conf
+index 6cb173bd4b..5352f01975 100644
+--- a/mobile/shared/components/geckoview/components.conf
++++ b/mobile/shared/components/geckoview/components.conf
+@@ -31,12 +31,6 @@ Classes = [
+         'esModule': 'resource://gre/modules/GeckoViewPermission.sys.mjs',
+         'constructor': 'GeckoViewPermission',
+     },
+-    {
+-        'cid': '{a54d84d7-98a4-4fec-b664-e42e512ae9cc}',
+-        'contract_ids': ['@mozilla.org/push/Service;1'],
+-        'esModule': 'resource://gre/modules/GeckoViewPush.sys.mjs',
+-        'constructor': 'PushService',
+-    },
+     {
+         'cid': '{fc4bec74-ddd0-4ea8-9a66-9a5081258e32}',
+         'contract_ids': ['@mozilla.org/parent/colorpicker;1'],
+@@ -85,3 +79,13 @@ if defined('MOZ_GECKOVIEW_HISTORY'):
+             'constructor': 'GeckoViewHistory::GetSingleton',
+         },
+     ]
++
++if buildconfig.substs['MOZ_WIDGET_TOOLKIT'] in ('android', 'uikit'):
++    Classes += [
++        {
++            'cid': '{a54d84d7-98a4-4fec-b664-e42e512ae9cc}',
++            'contract_ids': ['@mozilla.org/push/Service;1'],
++            'esModule': 'resource://gre/modules/GeckoViewPush.sys.mjs',
++            'constructor': 'PushService',
++        },
++    ]

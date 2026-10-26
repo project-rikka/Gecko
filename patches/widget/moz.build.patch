@@ -1,5 +1,5 @@
 diff --git a/widget/moz.build b/widget/moz.build
-index 67a8082de9..8341e4ab43 100644
+index 67a8082de9..6d18fde800 100644
 --- a/widget/moz.build
 +++ b/widget/moz.build
 @@ -89,7 +89,8 @@ elif toolkit == "windows":
@@ -8,7 +8,7 @@ index 67a8082de9..8341e4ab43 100644
      ]
 -elif toolkit in ("android", "uikit"):
 +
-+if toolkit in ("android", "uikit") or CONFIG["MOZ_BUILD_APP"] == "rikka":
++if toolkit in ("android", "uikit") or CONFIG["MOZ_GECKOVIEW"]:
      XPIDL_SOURCES += [
          "nsIGeckoViewBridge.idl",
      ]

@@ -1,0 +1,47 @@
+diff --git a/widget/gtk/components.conf b/widget/gtk/components.conf
+index b9fc44db01..6006daa1af 100644
+--- a/widget/gtk/components.conf
++++ b/widget/gtk/components.conf
+@@ -32,20 +32,6 @@ Classes = [
+         'type': 'TaskbarProgress',
+         'headers': ['/widget/gtk/TaskbarProgress.h'],
+     },
+-    {
+-        'cid': '{4364de1a-798e-419c-a6f5-ca28866b6d5f}',
+-        'contract_ids': ['@mozilla.org/parent/colorpicker;1'],
+-        'type': 'nsColorPicker',
+-        'headers': ['/widget/gtk/nsColorPicker.h'],
+-        'processes': ProcessSelector.MAIN_PROCESS_ONLY,
+-    },
+-    {
+-        'cid': '{1940fed5-7d02-4122-8acf-7abaac698983}',
+-        'contract_ids': ['@mozilla.org/parent/filepicker;1'],
+-        'type': 'nsFilePicker',
+-        'headers': ['/widget/gtk/nsFilePicker.h'],
+-        'processes': ProcessSelector.MAIN_PROCESS_ONLY,
+-    },
+     {
+         'cid': '{948a0023-e3a7-11d2-96cf-0060b0fb9956}',
+         'contract_ids': ['@mozilla.org/widget/htmlformatconverter;1'],
+@@ -143,3 +129,21 @@ Classes = [
+         'processes': ProcessSelector.MAIN_PROCESS_ONLY,
+     },
+ ]
++
++if not defined('MOZ_GECKOVIEW'):
++    Classes += [
++        {
++            'cid': '{4364de1a-798e-419c-a6f5-ca28866b6d5f}',
++            'contract_ids': ['@mozilla.org/parent/colorpicker;1'],
++            'type': 'nsColorPicker',
++            'headers': ['/widget/gtk/nsColorPicker.h'],
++            'processes': ProcessSelector.MAIN_PROCESS_ONLY,
++        },
++        {
++            'cid': '{1940fed5-7d02-4122-8acf-7abaac698983}',
++            'contract_ids': ['@mozilla.org/parent/filepicker;1'],
++            'type': 'nsFilePicker',
++            'headers': ['/widget/gtk/nsFilePicker.h'],
++            'processes': ProcessSelector.MAIN_PROCESS_ONLY,
++        },
++    ]

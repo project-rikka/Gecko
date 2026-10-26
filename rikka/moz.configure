@@ -21,3 +21,5 @@ def check_target(target):
 
 include("../mobile/shared/moz.configure")
 include("../toolkit/moz.configure")
+
+set_config("MOZ_GECKOVIEW", True)
