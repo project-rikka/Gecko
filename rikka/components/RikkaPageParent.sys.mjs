@@ -13,7 +13,7 @@ export class RikkaPageParent extends JSWindowActorParent {
     if (name !== "Icons") {
       return;
     }
-    const window = this.browsingContext.top.embedderElement?.ownerGlobal;
+    const window = this.browsingContext.topChromeWindow;
     if (!window || window.closed) {
       return;
     }

@@ -13,7 +13,7 @@ export class RikkaUserContentParent extends JSWindowActorParent {
     if (name !== "Message") {
       return undefined;
     }
-    const window = this.browsingContext.top.embedderElement?.ownerGlobal;
+    const window = this.browsingContext.topChromeWindow;
     if (!window || window.closed) {
       return Promise.reject(new Error("The view is gone"));
     }
