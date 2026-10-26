@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/common.sh"
 
-if [[ ! -d $TREE/.git ]]; then
+if [[ $(git -C "$TREE" rev-parse --verify -q 'HEAD^{commit}' 2> /dev/null || true) != "$FIREFOX_COMMIT" ]]; then
+    rm -rf "$TREE" "$WORK/applied"
     mkdir -p "$TREE"
     git -C "$TREE" init -q
     git -C "$TREE" remote add origin "$FIREFOX_REPOSITORY"
-fi
-
-if [[ $(git -C "$TREE" rev-parse --verify -q 'HEAD^{commit}' || true) != "$FIREFOX_COMMIT" ]]; then
     git -C "$TREE" fetch --depth=1 --no-tags origin "$FIREFOX_COMMIT"
-    git -C "$TREE" checkout -q --force --detach FETCH_HEAD
-    git -C "$TREE" reflog expire --expire=now --all
-    git -C "$TREE" gc -q --prune=now
-    rm -f "$WORK/applied"
+    git -C "$TREE" checkout -q --detach FETCH_HEAD
 fi

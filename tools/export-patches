@@ -2,7 +2,7 @@
 source "$(dirname "$0")/common.sh"
 
 rm -rf "$ROOT/patches"
-git -C "$TREE" diff --name-only | while read -r file; do
+git -C "$TREE" diff HEAD --name-only | while read -r file; do
     mkdir -p "$ROOT/patches/$(dirname "$file")"
-    git -C "$TREE" diff -- "$file" > "$ROOT/patches/$file.patch"
+    git -C "$TREE" diff HEAD -- "$file" > "$ROOT/patches/$file.patch"
 done

@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+source "$(dirname "$0")/common.sh"
+
+version=$(git ls-remote --tags --refs "$FIREFOX_REPOSITORY" 'FIREFOX_*_RELEASE' \
+    | sed -nE 's#^[0-9a-f]{40}\trefs/tags/FIREFOX_([0-9]+(_[0-9]+)+)_RELEASE$#\1#p' \
+    | tr _ . | sort -V | tail -n 1)
+if [[ -z $version ]]; then
+    echo "found no Firefox release tag in $FIREFOX_REPOSITORY" >&2
+    exit 1
+fi
+if [[ $(printf '%s\n%s\n' "$FIREFOX_VERSION" "$version" | sort -V | tail -n 1) == "$FIREFOX_VERSION" ]]; then
+    echo "Firefox $FIREFOX_VERSION is the latest release" >&2
+    exit 0
+fi
+
+tag="FIREFOX_${version//./_}_RELEASE"
+commit=$(git ls-remote "$FIREFOX_REPOSITORY" "refs/tags/$tag" "refs/tags/$tag^{}" | sort -k2,2r | head -n 1 | cut -f1)
+echo "rebasing from Firefox $FIREFOX_VERSION onto $version ($commit)" >&2
+
+"$ROOT/tools/fetch"
+git -C "$TREE" fetch --depth=1 --no-tags origin "$commit"
+git -C "$TREE" checkout -q --force --detach FETCH_HEAD
+git -C "$TREE" clean -q -fdx
+rm -f "$WORK/applied"
+
+unresolved=()
+while read -r patch; do
+    if ! git -C "$TREE" apply --3way --whitespace=nowarn "$ROOT/patches/$patch"; then
+        unresolved+=("$patch")
+    fi
+done < <(cd "$ROOT/patches" && find . -name '*.patch' -type f -printf '%P\n' | sort)
+
+held=$(mktemp -d)
+trap 'rm -rf "$held"' EXIT
+mkdir -p "$held/patches" "$held/tree"
+for patch in "${unresolved[@]}"; do
+    file=${patch%.patch}
+    mkdir -p "$held/patches/$(dirname "$patch")"
+    cp "$ROOT/patches/$patch" "$held/patches/$patch"
+    if [[ -e $TREE/$file ]]; then
+        mkdir -p "$held/tree/$(dirname "$file")"
+        cp "$TREE/$file" "$held/tree/$file"
+    fi
+    if git -C "$TREE" cat-file -e "HEAD:$file" 2> /dev/null; then
+        git -C "$TREE" checkout -q HEAD -- "$file"
+    fi
+    echo "resolve $TREE/$file, then run tools/export-patches" >&2
+done
+
+"$ROOT/tools/export-patches"
+cp -r "$held/patches/." "$ROOT/patches/"
+git -C "$TREE" reset -q
+cp -r "$held/tree/." "$TREE/"
+
+cat > "$ROOT/upstream.env" << EOF
+FIREFOX_REPOSITORY=$FIREFOX_REPOSITORY
+FIREFOX_TAG=$tag
+FIREFOX_COMMIT=$commit
+FIREFOX_VERSION=$version
+EOF
+
+if (( ${#unresolved[@]} )); then
+    printf '%s\n' "${unresolved[@]}"
+fi
