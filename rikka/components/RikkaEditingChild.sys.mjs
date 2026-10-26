@@ -133,6 +133,13 @@ export class RikkaEditingChild extends JSWindowActorChild {
     return { misspelling: checker.mMisspelling, suggestions };
   }
 
+  #prepareFocusedEditor() {
+    const focused = Services.focus.getFocusedElementForWindow(this.contentWindow, false, {});
+    if (focused && "editor" in focused) {
+      void focused.editor;
+    }
+  }
+
   receiveMessage({ name, data }) {
     switch (name) {
       case "Edit": {
@@ -140,6 +147,7 @@ export class RikkaEditingChild extends JSWindowActorChild {
         if (!command) {
           throw new Error(`Unknown edit command ${data?.command}`);
         }
+        this.#prepareFocusedEditor();
         if (this.docShell.isCommandEnabled(command)) {
           this.docShell.doCommand(command);
         }
