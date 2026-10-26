@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+source "$(dirname "$0")/common.sh"
+
+missing=()
+for tool in rsync zstd; do
+    command -v "$tool" > /dev/null || missing+=("$tool")
+done
+if (( ${#missing[@]} )); then
+    sudo apt-get update -q
+    sudo apt-get install -y -q "${missing[@]}"
+fi
+
+"$ROOT/tools/assemble"
+
+cd "$TREE"
+bootstrapped="$MOZBUILD_STATE_PATH/rikka-bootstrapped-$FIREFOX_COMMIT"
+if [[ ! -f $bootstrapped ]]; then
+    ./mach --no-interactive bootstrap --application-choice "Firefox for Desktop"
+    touch "$bootstrapped"
+fi
+
+./mach build

@@ -1,0 +1,24 @@
+diff --git a/widget/EventDispatcherBase.h b/widget/EventDispatcherBase.h
+index dc040bae9e..d9afa8f281 100644
+--- a/widget/EventDispatcherBase.h
++++ b/widget/EventDispatcherBase.h
+@@ -15,6 +15,8 @@
+ #include "nsIGeckoViewBridge.h"
+ #include "nsTObserverArray.h"
+ 
++class nsIWidget;
++
+ namespace mozilla::widget {
+ 
+ /**
+@@ -100,6 +102,10 @@ class EventDispatcherBase : public nsIGeckoViewEventDispatcher {
+   ListenersMap mListenersMap MOZ_GUARDED_BY(mLock);
+ };
+ 
++#ifdef MOZ_WIDGET_GTK
++EventDispatcherBase* GeckoViewDispatcherForWidget(nsIWidget* aWidget);
++#endif
++
+ }  // namespace mozilla::widget
+ 
+ #endif  // mozilla_widget_EventDispatcherBase_h

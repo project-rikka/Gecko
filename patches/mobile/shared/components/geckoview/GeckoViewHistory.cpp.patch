@@ -1,0 +1,71 @@
+diff --git a/mobile/shared/components/geckoview/GeckoViewHistory.cpp b/mobile/shared/components/geckoview/GeckoViewHistory.cpp
+index 83786055fe..86c6ac4ada 100644
+--- a/mobile/shared/components/geckoview/GeckoViewHistory.cpp
++++ b/mobile/shared/components/geckoview/GeckoViewHistory.cpp
+@@ -20,14 +20,27 @@
+ 
+ #include "mozilla/ipc/URIUtils.h"
+ 
+-#include "mozilla/widget/EventDispatcher.h"
+-#include "mozilla/widget/nsWindow.h"
++#ifdef MOZ_WIDGET_GTK
++#  include "mozilla/widget/EventDispatcherBase.h"
++#else
++#  include "mozilla/widget/EventDispatcher.h"
++#  include "mozilla/widget/nsWindow.h"
++#endif
+ 
+ using namespace mozilla;
+ using namespace mozilla::dom;
+ using namespace mozilla::ipc;
+ using namespace mozilla::widget;
+ 
++static EventDispatcherBase* DispatcherFor(nsIWidget* aWidget) {
++#ifdef MOZ_WIDGET_GTK
++  return GeckoViewDispatcherForWidget(aWidget);
++#else
++  RefPtr<nsWindow> window = nsWindow::From(aWidget);
++  return window ? window->GetEventDispatcher() : nullptr;
++#endif
++}
++
+ static const nsLiteralString kOnVisitedMessage = u"GeckoView:OnVisited"_ns;
+ static const nsLiteralString kGetVisitedMessage = u"GeckoView:GetVisited"_ns;
+ static const nsLiteralString kGetHostVisitedSinceMessage =
+@@ -268,11 +281,7 @@ GeckoViewHistory::VisitURI(nsIWidget* aWidget, nsIURI* aURI,
+   // Otherwise, we're in the parent process. Wrap the URIs up in a bundle, and
+   // send them to Java.
+   MOZ_ASSERT(XRE_IsParentProcess());
+-  RefPtr<nsWindow> window = nsWindow::From(aWidget);
+-  if (NS_WARN_IF(!window)) {
+-    return NS_OK;
+-  }
+-  widget::EventDispatcher* dispatcher = window->GetEventDispatcher();
++  EventDispatcherBase* dispatcher = DispatcherFor(aWidget);
+   if (NS_WARN_IF(!dispatcher)) {
+     return NS_OK;
+   }
+@@ -487,9 +496,7 @@ void GeckoViewHistory::QueryHostVisitedSince(
+   MOZ_ASSERT(XRE_IsParentProcess());
+   AssertIsOnMainThread();
+ 
+-  RefPtr<nsWindow> window = nsWindow::From(aWidget);
+-  widget::EventDispatcher* dispatcher =
+-      window ? window->GetEventDispatcher() : nullptr;
++  EventDispatcherBase* dispatcher = DispatcherFor(aWidget);
+   if (NS_WARN_IF(!dispatcher) ||
+       !dispatcher->HasEmbedderListener(kGetHostVisitedSinceMessage)) {
+     aCallback(Nothing());
+@@ -539,11 +546,7 @@ void GeckoViewHistory::QueryVisitedState(nsIWidget* aWidget,
+   MOZ_ASSERT(XRE_IsParentProcess());
+   AssertIsOnMainThread();
+ 
+-  RefPtr<nsWindow> window = nsWindow::From(aWidget);
+-  if (NS_WARN_IF(!window)) {
+-    return;
+-  }
+-  widget::EventDispatcher* dispatcher = window->GetEventDispatcher();
++  EventDispatcherBase* dispatcher = DispatcherFor(aWidget);
+   if (NS_WARN_IF(!dispatcher)) {
+     return;
+   }

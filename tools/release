@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+source "$(dirname "$0")/common.sh"
+
+name=$(artifact_name)
+tag="$FIREFOX_VERSION-$(revision)"
+archive="$OUT/$name.tar.zst"
+checksum="$archive.sha256"
+
+(cd "$OUT" && sha256sum -c "$(basename "$checksum")")
+
+gh release create "$tag" "$archive" "$checksum" \
+    --target "$(git -C "$ROOT" rev-parse HEAD)" \
+    --title "Rikka Gecko $tag" \
+    --notes "Gecko $FIREFOX_VERSION ($FIREFOX_TAG, $FIREFOX_COMMIT) with rikka-gecko $(git -C "$ROOT" rev-parse HEAD)."

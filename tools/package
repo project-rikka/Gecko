@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+source "$(dirname "$0")/common.sh"
+
+destination=${1:-$OUT}
+
+cd "$TREE"
+./mach package
+
+name=$(artifact_name)
+mkdir -p "$destination"
+tar --sort=name --owner=0 --group=0 --numeric-owner \
+    --mtime="@$(git -C "$ROOT" log -1 --format=%ct)" \
+    -C "$OBJ/dist" -cf - rikka-gecko \
+    | zstd -q -19 -T0 -o "$destination/$name.tar.zst"
+(cd "$destination" && sha256sum "$name.tar.zst" > "$name.tar.zst.sha256")
+echo "$destination/$name.tar.zst"
