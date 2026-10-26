@@ -20,7 +20,7 @@ if ! git -C "$ROOT" diff --quiet HEAD; then
 fi
 commit=$(git -C "$ROOT" rev-parse HEAD)
 git -C "$ROOT" fetch -q origin
-if ! git -C "$ROOT" branch -r --contains "$commit" | grep -q 'origin/'; then
+if [[ -z $(git -C "$ROOT" branch -r --contains "$commit") ]]; then
     echo "push $commit first; the runner clones it from origin" >&2
     exit 1
 fi
