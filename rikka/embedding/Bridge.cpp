@@ -304,7 +304,7 @@ void Bridge::Forget(Dispatcher* aDispatcher) {
 
 bool Bridge::HasEmbedderListener(const nsACString& aTarget,
                                  const nsAString& aEvent) const {
-  const nsTHashSet<nsString>* events = mListeners.GetValue(aTarget);
+  const auto events = mListeners.Lookup(aTarget);
   return mChannel && events && events->Contains(aEvent);
 }
 
@@ -417,7 +417,7 @@ void Bridge::Send(JSContext* aCx, JS::Handle<JSObject*> aMessage) {
   JS::Rooted<JS::Value> value(aCx, JS::ObjectValue(*aMessage));
   nsAutoString json;
   if (!nsContentUtils::StringifyJSON(aCx, value, json,
-                                     UndefinedIsNullStringLiteral)) {
+                                     dom::UndefinedIsNullStringLiteral)) {
     JS_ClearPendingException(aCx);
     NS_WARNING("Dropping a message that cannot be serialized as JSON");
     return;
@@ -568,7 +568,7 @@ void Bridge::HandleOpen(JSContext* aCx, JS::Handle<JSObject*> aMessage) {
   }
   nsAutoString initData;
   if (!nsContentUtils::StringifyJSON(aCx, init, initData,
-                                     UndefinedIsNullStringLiteral)) {
+                                     dom::UndefinedIsNullStringLiteral)) {
     JS_ClearPendingException(aCx);
     return;
   }
@@ -593,7 +593,7 @@ Dispatcher* Bridge::Target(const nsACString& aTarget) const {
   }
   if (StringBeginsWith(aTarget, kWindowPrefix)) {
     NS_ConvertUTF8toUTF16 window(Substring(aTarget, kWindowPrefix.Length()));
-    const Window* entry = mWindows.GetValue(window);
+    const auto entry = mWindows.Lookup(window);
     return entry ? entry->mView->GetDispatcher() : nullptr;
   }
   return nullptr;
@@ -636,7 +636,8 @@ void Bridge::OpenWindow(const nsAString& aWindow, const nsAString& aInitData,
   }
 
   nsCOMPtr<nsPIDOMWindowOuter> outer = nsPIDOMWindowOuter::From(domWindow);
-  nsCOMPtr<nsIWidget> widget = WidgetUtils::DOMWindowToWidget(outer);
+  nsCOMPtr<nsIWidget> widget =
+      mozilla::widget::WidgetUtils::DOMWindowToWidget(outer);
   if (widget) {
     if (nsIWidgetListener* listener = widget->GetWidgetListener()) {
       if (nsCOMPtr<nsIAppWindow> appWindow = listener->GetAppWindow()) {
@@ -725,8 +726,7 @@ void Bridge::Quit() {
   }
 
   if (nsCOMPtr<nsIAppStartup> startup = components::AppStartup::Service()) {
-    bool userAllowedQuit = false;
-    startup->Quit(nsIAppStartup::eForceQuit, 0, &userAllowedQuit);
+    startup->Quit(nsIAppStartup::eForceQuit, 0);
   }
 }
 
