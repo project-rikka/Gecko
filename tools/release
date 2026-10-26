@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/common.sh"
 
-name=$(artifact_name)
-tag="$FIREFOX_VERSION-$(revision)"
-archive="$OUT/$name.tar.zst"
-checksum="$archive.sha256"
+archive=${1:?usage: tools/release <out/rikka-gecko-VERSION-REVISION-x86_64-linux.tar.zst>}
+name=$(basename "$archive" .tar.zst)
+if [[ ! $name =~ ^rikka-gecko-([0-9.]+)-([0-9a-f]{12})-x86_64-linux$ ]]; then
+    echo "$archive is not a rikka-gecko archive" >&2
+    exit 1
+fi
+version=${BASH_REMATCH[1]}
+revision=$(git -C "$ROOT" rev-parse "${BASH_REMATCH[2]}^{commit}")
+tag="$version-${BASH_REMATCH[2]}"
 
-(cd "$OUT" && sha256sum -c "$(basename "$checksum")")
+(cd "$(dirname "$archive")" && sha256sum -c "$name.tar.zst.sha256")
 
-gh release create "$tag" "$archive" "$checksum" \
-    --target "$(git -C "$ROOT" rev-parse HEAD)" \
+gh release create "$tag" "$archive" "$archive.sha256" \
+    --target "$revision" \
     --title "Rikka Gecko $tag" \
-    --notes "Gecko $FIREFOX_VERSION ($FIREFOX_TAG, $FIREFOX_COMMIT) with rikka-gecko $(git -C "$ROOT" rev-parse HEAD)."
+    --notes "Gecko $version ($FIREFOX_TAG, $FIREFOX_COMMIT) built from rikka-gecko $revision."
