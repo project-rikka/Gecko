@@ -64,7 +64,8 @@ pref("browser.safebrowsing.phishing.enabled", false);
 pref("browser.safebrowsing.downloads.enabled", false);
 pref("browser.safebrowsing.downloads.remote.enabled", false);
 
-pref("browser.translations.enable", true);
+pref("browser.translations.enable", false);
+pref("browser.translations.automaticallyPopup", false);
 pref("pdfjs.handleOctetStream", true);
 pref("browser.download.useDownloadDir", false);
 pref("browser.download.always_ask_before_handling_new_types", true);

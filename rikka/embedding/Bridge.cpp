@@ -13,8 +13,9 @@
 #include "mozilla/Services.h"
 #include "mozilla/StaticPtr.h"
 #include "mozilla/dom/ScriptSettings.h"
+#include "mozilla/dom/Document.h"
 #include "mozilla/dom/ToJSValue.h"
-#include "mozilla/widget/WidgetUtils.h"
+#include "mozilla/WidgetUtils.h"
 #include "nsContentUtils.h"
 #include "nsIAppStartup.h"
 #include "nsIAppWindow.h"
@@ -221,6 +222,7 @@ void Bridge::Init() {
 
   if (nsCOMPtr<nsIObserverService> observers = services::GetObserverService()) {
     observers->AddObserver(this, "xpcom-will-shutdown", false);
+    observers->AddObserver(this, "chrome-document-loaded", false);
   }
   if (nsCOMPtr<nsIWindowWatcher> watcher =
           do_GetService(NS_WINDOWWATCHER_CONTRACTID)) {
@@ -261,10 +263,15 @@ Bridge::Observe(nsISupports* aSubject, const char* aTopic,
   if (!strcmp(aTopic, "domwindowclosed")) {
     nsCOMPtr<mozIDOMWindowProxy> window = do_QueryInterface(aSubject);
     WindowClosed(window);
+  } else if (!strcmp(aTopic, "chrome-document-loaded")) {
+    if (nsCOMPtr<dom::Document> document = do_QueryInterface(aSubject)) {
+      WindowLoaded(document->GetWindow());
+    }
   } else if (!strcmp(aTopic, "xpcom-will-shutdown")) {
     if (nsCOMPtr<nsIObserverService> observers =
             services::GetObserverService()) {
       observers->RemoveObserver(this, "xpcom-will-shutdown");
+      observers->RemoveObserver(this, "chrome-document-loaded");
     }
     Shutdown();
   }
@@ -387,7 +394,7 @@ void Bridge::SendHello() {
   Send(cx, message);
 }
 
-void Bridge::SendWindowClosed(const nsAString& aWindow) {
+void Bridge::SendWindowMessage(const char* aType, const nsAString& aWindow) {
   if (!mChannel) {
     return;
   }
@@ -396,7 +403,7 @@ void Bridge::SendWindowClosed(const nsAString& aWindow) {
     return;
   }
   JSContext* cx = jsapi.cx();
-  JS::Rooted<JSObject*> message(cx, NewMessage(cx, "closed"));
+  JS::Rooted<JSObject*> message(cx, NewMessage(cx, aType));
   if (!message || !SetValue(cx, message, "window", aWindow)) {
     return;
   }
@@ -602,7 +609,7 @@ void Bridge::OpenWindow(const nsAString& aWindow, const nsAString& aInitData,
   nsCOMPtr<nsIWindowWatcher> watcher =
       do_GetService(NS_WINDOWWATCHER_CONTRACTID);
   if (!watcher) {
-    SendWindowClosed(aWindow);
+    SendWindowMessage("closed", aWindow);
     return;
   }
 
@@ -624,12 +631,12 @@ void Bridge::OpenWindow(const nsAString& aWindow, const nsAString& aInitData,
   nsresult rv = watcher->OpenWindow(nullptr, url, aWindow, features, view,
                                     getter_AddRefs(domWindow));
   if (NS_FAILED(rv) || !domWindow) {
-    SendWindowClosed(aWindow);
+    SendWindowMessage("closed", aWindow);
     return;
   }
 
   nsCOMPtr<nsPIDOMWindowOuter> outer = nsPIDOMWindowOuter::From(domWindow);
-  nsCOMPtr<nsIWidget> widget = widget::WidgetUtils::DOMWindowToWidget(outer);
+  nsCOMPtr<nsIWidget> widget = WidgetUtils::DOMWindowToWidget(outer);
   if (widget) {
     if (nsIWidgetListener* listener = widget->GetWidgetListener()) {
       if (nsCOMPtr<nsIAppWindow> appWindow = listener->GetAppWindow()) {
@@ -666,8 +673,20 @@ void Bridge::WindowClosed(mozIDOMWindowProxy* aWindow) {
     nsAutoCString target(kWindowPrefix);
     AppendUTF16toUTF8(window, target);
     mListeners.Remove(target);
-    SendWindowClosed(window);
+    SendWindowMessage("closed", window);
     return;
+  }
+}
+
+void Bridge::WindowLoaded(nsPIDOMWindowOuter* aOuter) {
+  if (!aOuter) {
+    return;
+  }
+  for (const auto& entry : mWindows) {
+    if (entry.GetData().mOuter == aOuter) {
+      SendWindowMessage("ready", entry.GetKey());
+      return;
+    }
   }
 }
 

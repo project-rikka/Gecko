@@ -62,7 +62,7 @@ class Bridge final : public nsIGeckoViewBridge,
   void Shutdown();
   void Send(JSContext* aCx, JS::Handle<JSObject*> aMessage);
   void SendHello();
-  void SendWindowClosed(const nsAString& aWindow);
+  void SendWindowMessage(const char* aType, const nsAString& aWindow);
   void Handle(JSContext* aCx, JS::Handle<JSObject*> aMessage);
   void HandleListen(JSContext* aCx, JS::Handle<JSObject*> aMessage,
                     bool aListen);
@@ -76,6 +76,7 @@ class Bridge final : public nsIGeckoViewBridge,
                   bool aPrivate);
   void CloseWindow(const nsAString& aWindow);
   void WindowClosed(mozIDOMWindowProxy* aWindow);
+  void WindowLoaded(nsPIDOMWindowOuter* aOuter);
   void Quit();
 
   RefPtr<Channel> mChannel;

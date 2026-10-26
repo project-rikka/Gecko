@@ -5,3 +5,5 @@
 "use strict";
 
 document.documentElement.setAttribute("windowclass", `rikka-view-${window.name}`);
+
+ChromeUtils.importESModule("resource://gre/modules/RikkaUserContent.sys.mjs").RikkaUserContent.attach(window);

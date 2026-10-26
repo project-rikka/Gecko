@@ -35,13 +35,7 @@ export class RikkaDownloads {
   #next = 1;
   #list = null;
 
-  observe(subject, topic) {
-    if (topic === "profile-after-change") {
-      this.#start();
-    }
-  }
-
-  async #start() {
+  async start() {
     lazy.EventDispatcher.instance.registerListener(this, COMMANDS);
     this.#list = await lazy.Downloads.getList(lazy.Downloads.ALL);
     await this.#list.addView(this);
