@@ -39,6 +39,7 @@ export class RikkaUserContentChild extends JSWindowActorChild {
   #sandboxes = new Map();
   #exposed = new Set();
   #handlerRoots = new Map();
+  #styled = false;
 
   get #content() {
     return Services.cpmm.sharedData.get(`rikka-user-content:${this.browsingContext.browserId}`) ?? null;
@@ -88,10 +89,11 @@ export class RikkaUserContentChild extends JSWindowActorChild {
       return;
     }
 
-    if (at === "start") {
-      for (const handler of content.handlers) {
-        this.#expose(handler);
-      }
+    for (const handler of content.handlers) {
+      this.#expose(handler);
+    }
+    if (!this.#styled) {
+      this.#styled = true;
       for (const style of content.styles) {
         if (this.#applies(style)) {
           this.#style(style);
@@ -104,14 +106,17 @@ export class RikkaUserContentChild extends JSWindowActorChild {
       .filter(script => script.world === null)
       .map(script => compile(script.source))
       .filter(entry => !entry.script);
-    if (pending.length && at === "start") {
-      this.document.blockParsing(
-        Promise.all(pending.map(entry => entry.promise)).then(() => this.#run(scripts)),
-        { blockScriptCreated: true }
-      );
+    if (!pending.length) {
+      this.#run(scripts);
       return;
     }
-    this.#run(scripts);
+    const compiled = Promise.all(pending.map(entry => entry.promise)).then(
+      () => this.#run(scripts),
+      error => console.error(error)
+    );
+    if (at === "start") {
+      this.document.blockParsing(compiled, { blockScriptCreated: true });
+    }
   }
 
   #run(scripts) {
