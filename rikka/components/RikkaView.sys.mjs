@@ -120,6 +120,7 @@ export const RikkaView = {
         },
       },
       messageManagerGroups: ["browsers"],
+      safeForUntrustedWebProcess: true,
     });
   },
 };

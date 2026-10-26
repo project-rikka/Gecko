@@ -114,6 +114,7 @@ export const RikkaUserContent = {
       },
       allFrames: true,
       messageManagerGroups: ["browsers"],
+      safeForUntrustedWebProcess: true,
     });
   },
 };
