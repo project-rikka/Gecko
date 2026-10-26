@@ -5,7 +5,7 @@ use crate::geckoview::{
     autocomplete, content, content_blocking, history, media, navigation, permission, preferences,
     print, progress, prompt, runtime, selection, session_state,
 };
-use crate::rikka::{downloads, notifications, user_content};
+use crate::rikka::{downloads, notifications, user_content, view};
 
 inbound! {
     pub enum WindowEvent {
@@ -71,6 +71,10 @@ inbound! {
         Connect(messaging::Connect),
         DownloadRequest(downloads::DownloadRequest),
         ScriptMessage(user_content::ScriptMessage),
+        OverLink(view::OverLink),
+        Tooltip(view::Tooltip),
+        TooltipHidden(view::TooltipHidden),
+        Icons(view::Icons),
     }
 }
 

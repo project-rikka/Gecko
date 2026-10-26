@@ -7,6 +7,7 @@ const lazy = {};
 ChromeUtils.defineESModuleGetters(lazy, {
   RikkaDownloads: "resource://gre/modules/RikkaDownloads.sys.mjs",
   RikkaUserContent: "resource://gre/modules/RikkaUserContent.sys.mjs",
+  RikkaView: "resource://gre/modules/RikkaView.sys.mjs",
 });
 
 export class RikkaStartup {
@@ -15,6 +16,7 @@ export class RikkaStartup {
       return;
     }
     lazy.RikkaUserContent.register();
+    lazy.RikkaView.register();
     new lazy.RikkaDownloads().start();
   }
 }

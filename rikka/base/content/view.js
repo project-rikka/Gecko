@@ -7,3 +7,4 @@
 document.documentElement.setAttribute("windowclass", `rikka-view-${window.name}`);
 
 ChromeUtils.importESModule("resource://gre/modules/RikkaUserContent.sys.mjs").RikkaUserContent.attach(window);
+ChromeUtils.importESModule("resource://gre/modules/RikkaView.sys.mjs").RikkaView.attach(window);

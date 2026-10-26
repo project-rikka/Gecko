@@ -10,6 +10,7 @@ use rikka_gecko_protocol::rikka::user_content::{
     CallFunction, Evaluate, Frames, InjectAt, MessageHandler, ScriptMessage, SetUserContent,
     StyleLevel, UserScript, UserStyle,
 };
+use rikka_gecko_protocol::rikka::view::{Snapshot, SnapshotRegion};
 use rikka_gecko_protocol::{CallbackId, Reply};
 use serde_json::{Map, Value, json};
 
@@ -272,4 +273,46 @@ fn receives_script_messages_and_answers_them() {
         answered::<ScriptMessage>(&json!({"pong": true})),
         json!({"pong": true})
     );
+}
+
+#[test]
+fn carries_view_events_as_rikka_view_builds_them() {
+    let WindowEvent::Icons(icons) = window_event(
+        "Rikka:View:Icons",
+        json!({"page": "https://example.org/", "icons": [
+            {"url": "https://example.org/a.png", "rel": "icon", "sizes": ["32x32"], "type": "image/png"},
+            {"url": "https://example.org/favicon.ico", "rel": "icon", "sizes": [], "type": null},
+        ]}),
+    ) else {
+        panic!()
+    };
+    assert_eq!(icons.icons[0].mime_type.as_deref(), Some("image/png"));
+    assert_eq!(icons.icons[1].mime_type, None);
+
+    let WindowEvent::Tooltip(tooltip) = window_event(
+        "Rikka:View:Tooltip",
+        json!({"x": 10, "y": 20, "text": "Help", "direction": "ltr"}),
+    ) else {
+        panic!()
+    };
+    assert_eq!(tooltip.text, "Help");
+    assert!(matches!(
+        window_event("Rikka:View:TooltipHidden", json!({})),
+        WindowEvent::TooltipHidden(_)
+    ));
+    let WindowEvent::OverLink(link) = window_event("Rikka:View:OverLink", json!({"url": null}))
+    else {
+        panic!()
+    };
+    assert_eq!(link.url, None);
+
+    assert_eq!(
+        sent_data(&Snapshot {
+            region: SnapshotRegion::Document,
+            scale: None,
+        }),
+        json!({"region": "document", "scale": null})
+    );
+    let image = gecko_reply::<Snapshot>(json!({"width": 2, "height": 1, "png": "iVBOR"}));
+    assert_eq!((image.width, image.height), (2, 1));
 }

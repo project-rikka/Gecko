@@ -10,8 +10,11 @@ EXTRA_JS_MODULES += [
     "RikkaAlerts.sys.mjs",
     "RikkaDownloads.sys.mjs",
     "RikkaHelperAppDialog.sys.mjs",
+    "RikkaPageChild.sys.mjs",
+    "RikkaPageParent.sys.mjs",
     "RikkaStartup.sys.mjs",
     "RikkaUserContent.sys.mjs",
     "RikkaUserContentChild.sys.mjs",
     "RikkaUserContentParent.sys.mjs",
+    "RikkaView.sys.mjs",
 ]
