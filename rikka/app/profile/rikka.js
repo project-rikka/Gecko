@@ -13,6 +13,10 @@ pref("datareporting.policy.dataSubmissionEnabled", false);
 pref("app.shield.optoutstudies.enabled", false);
 pref("app.normandy.enabled", false);
 pref("geckoview.console.enabled", false);
+pref("geckoview.autocomplete.selection_dismiss_delay_ms", 150);
+pref("page_load.progressbar_completion", 2);
+pref("browser.sessionstore.interval", 10000);
+pref("browser.sessionstore.privacy_level", 0);
 
 pref("browser.link.open_newwindow", 3);
 pref("browser.link.open_newwindow.restriction", 0);
