@@ -66,8 +66,9 @@ pref("browser.safebrowsing.downloads.remote.enabled", false);
 
 pref("browser.translations.enable", true);
 pref("pdfjs.handleOctetStream", true);
-pref("browser.download.useDownloadDir", true);
-pref("browser.download.folderList", 1);
+pref("browser.download.useDownloadDir", false);
+pref("browser.download.always_ask_before_handling_new_types", true);
+pref("browser.download.start_downloads_in_tmp_dir", false);
 pref("layout.spellcheckDefault", 1);
 
 pref("extensions.enabledScopes", 5);

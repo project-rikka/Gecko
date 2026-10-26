@@ -9,5 +9,6 @@ DIRS += [
     "branding",
     "base",
     "embedding",
+    "components",
     "app",
 ]
