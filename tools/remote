@@ -19,8 +19,16 @@ if ! git -C "$ROOT" diff --quiet HEAD; then
     exit 1
 fi
 commit=$(git -C "$ROOT" rev-parse HEAD)
-git -C "$ROOT" fetch -q origin
-if [[ -z $(git -C "$ROOT" branch -r --contains "$commit") ]]; then
+pushed=false
+for _ in 1 2 3 4 5 6; do
+    heads=$(git -C "$ROOT" ls-remote --heads origin | cut -f1)
+    if [[ $'\n'$heads$'\n' == *$'\n'$commit$'\n'* ]]; then
+        pushed=true
+        break
+    fi
+    sleep 5
+done
+if ! $pushed; then
     echo "push $commit first; the runner clones it from origin" >&2
     exit 1
 fi
