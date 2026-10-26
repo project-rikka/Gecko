@@ -62,6 +62,15 @@ pub struct Icons {
     pub icons: Vec<Icon>,
 }
 
+empty_payload! {
+    pub struct PermitUnload;
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Download {
+    pub uri: String,
+}
+
 events! {
     SetZoom: "Rikka:View:SetZoom" => ForGecko -> ();
     Snapshot: "Rikka:View:Snapshot" => ForGecko -> SnapshotImage;
@@ -70,4 +79,6 @@ events! {
     Tooltip: "Rikka:View:Tooltip" => ForEmbedder;
     TooltipHidden: "Rikka:View:TooltipHidden" => ForEmbedder;
     Icons: "Rikka:View:Icons" => ForEmbedder;
+    PermitUnload: "Rikka:View:PermitUnload" => ForGecko -> bool;
+    Download: "Rikka:View:Download" => ForGecko -> ();
 }

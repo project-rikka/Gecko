@@ -1,0 +1,22 @@
+diff --git a/toolkit/components/windowwatcher/nsIOpenWindowInfo.idl b/toolkit/components/windowwatcher/nsIOpenWindowInfo.idl
+index f859bce2eb..cea3604eb2 100644
+--- a/toolkit/components/windowwatcher/nsIOpenWindowInfo.idl
++++ b/toolkit/components/windowwatcher/nsIOpenWindowInfo.idl
+@@ -84,6 +84,17 @@ interface nsIOpenWindowInfo : nsISupports {
+   [infallible]
+   readonly attribute boolean textDirectiveUserActivation;
+ 
++  /**
++   * Whether the window features asked for a popup rather than a tab.
++   */
++  [infallible]
++  readonly attribute boolean isPopupRequested;
++
++  /**
++   * The window features the opener passed, as written.
++   */
++  readonly attribute ACString features;
++
+   /**
+    * The principal to inherit into the initial about:blank.
+    */

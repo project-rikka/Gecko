@@ -5,7 +5,9 @@ use crate::geckoview::{
     autocomplete, content, content_blocking, history, media, navigation, permission, preferences,
     print, progress, prompt, runtime, selection, session_state,
 };
-use crate::rikka::{downloads, notifications, user_content, view};
+use crate::rikka::{
+    capture, certificates, downloads, editing, links, notifications, user_content, view,
+};
 
 inbound! {
     pub enum WindowEvent {
@@ -75,6 +77,10 @@ inbound! {
         Tooltip(view::Tooltip),
         TooltipHidden(view::TooltipHidden),
         Icons(view::Icons),
+        OpenLink(links::OpenLink),
+        CertificateError(certificates::CertificateError),
+        RikkaContextMenu(editing::ContextMenu),
+        CaptureChanged(capture::CaptureChanged),
     }
 }
 

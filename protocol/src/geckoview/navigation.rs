@@ -166,6 +166,10 @@ impl<'de> Deserialize<'de> for LoadDecision {
 pub struct OnNewSession {
     pub uri: String,
     pub new_session_id: WindowId,
+    #[serde(default)]
+    pub popup: bool,
+    #[serde(default)]
+    pub features: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -178,9 +182,20 @@ pub struct OnLoadError {
     pub error_class: u32,
 }
 
+int_enum! {
+    pub enum ErrorClass: u32 {
+        SslProtocol = 1,
+        BadCertificate = 2,
+    }
+}
+
 impl OnLoadError {
     pub fn classify(&self) -> WebRequestError {
         WebRequestError::from_gecko(self.error, self.error_class)
+    }
+
+    pub fn class(&self) -> Option<ErrorClass> {
+        ErrorClass::from_code(self.error_class)
     }
 }
 

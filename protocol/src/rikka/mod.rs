@@ -1,4 +1,10 @@
+pub mod capture;
+pub mod certificates;
 pub mod downloads;
+pub mod editing;
+pub mod extensions;
+pub mod links;
 pub mod notifications;
+pub mod storage;
 pub mod user_content;
 pub mod view;

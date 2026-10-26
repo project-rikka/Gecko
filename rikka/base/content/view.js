@@ -6,5 +6,12 @@
 
 document.documentElement.setAttribute("windowclass", `rikka-view-${window.name}`);
 
-ChromeUtils.importESModule("resource://gre/modules/RikkaUserContent.sys.mjs").RikkaUserContent.attach(window);
-ChromeUtils.importESModule("resource://gre/modules/RikkaView.sys.mjs").RikkaView.attach(window);
+for (const [module, name] of [
+  ["resource://gre/modules/RikkaUserContent.sys.mjs", "RikkaUserContent"],
+  ["resource://gre/modules/RikkaView.sys.mjs", "RikkaView"],
+  ["resource://gre/modules/RikkaEditing.sys.mjs", "RikkaEditing"],
+  ["resource://gre/modules/RikkaCapture.sys.mjs", "RikkaCapture"],
+  ["resource://gre/modules/RikkaCertificates.sys.mjs", "RikkaCertificates"],
+]) {
+  ChromeUtils.importESModule(module)[name].attach(window);
+}

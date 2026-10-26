@@ -1,0 +1,21 @@
+diff --git a/toolkit/components/windowwatcher/nsOpenWindowInfo.h b/toolkit/components/windowwatcher/nsOpenWindowInfo.h
+index 5d2eb5c063..5f9ad09a3f 100644
+--- a/toolkit/components/windowwatcher/nsOpenWindowInfo.h
++++ b/toolkit/components/windowwatcher/nsOpenWindowInfo.h
+@@ -7,6 +7,7 @@
+ 
+ #include "nsIOpenWindowInfo.h"
+ #include "nsISupportsImpl.h"
++#include "nsString.h"
+ #include "mozilla/OriginAttributes.h"
+ #include "mozilla/RefPtr.h"
+ #include "mozilla/dom/ClientOpenWindowUtils.h"
+@@ -30,6 +31,8 @@ class nsOpenWindowInfo : public nsIOpenWindowInfo {
+   bool mIsTopLevelCreatedByWebContent = false;
+   bool mHasValidUserGestureActivation = false;
+   bool mTextDirectiveUserActivation = false;
++  bool mIsPopupRequested = false;
++  nsCString mFeatures;
+   RefPtr<mozilla::dom::BrowserParent> mNextRemoteBrowser;
+   RefPtr<mozilla::dom::BrowsingContext> mParent;
+   RefPtr<nsIBrowsingContextReadyCallback> mBrowsingContextReadyCallback;

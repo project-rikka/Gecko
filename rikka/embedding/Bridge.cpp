@@ -622,7 +622,7 @@ void Bridge::OpenWindow(const nsAString& aWindow, const nsAString& aInitData,
   AppendUTF16toUTF8(aWindow, target);
   RefPtr<View> view = new View(new Dispatcher(target), aInitData);
 
-  nsAutoCString features("chrome,dialog=0,remote,resizable");
+  nsAutoCString features("chrome,dialog=0,remote,resizable,titlebar=no");
   if (aPrivate) {
     features.AppendLiteral(",private");
   }

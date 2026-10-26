@@ -1,0 +1,13 @@
+diff --git a/mobile/shared/modules/geckoview/GeckoViewNavigation.sys.mjs b/mobile/shared/modules/geckoview/GeckoViewNavigation.sys.mjs
+index f13150bc96..7ededa34b3 100644
+--- a/mobile/shared/modules/geckoview/GeckoViewNavigation.sys.mjs
++++ b/mobile/shared/modules/geckoview/GeckoViewNavigation.sys.mjs
+@@ -359,6 +359,8 @@ export class GeckoViewNavigation extends GeckoViewModule {
+     const message = {
+       uri: aUri ? aUri.displaySpec : "",
+       newSessionId,
++      popup: aOpenWindowInfo?.isPopupRequested ?? false,
++      features: aOpenWindowInfo?.features ?? "",
+     };
+ 
+     // The window might be already open by the time we get the response from

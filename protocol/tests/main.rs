@@ -15,5 +15,7 @@ mod runtime;
 mod selection;
 mod session;
 mod session_state;
+mod site_data;
 mod support;
+mod view;
 mod webextension;

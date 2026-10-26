@@ -6,9 +6,16 @@ const lazy = {};
 
 ChromeUtils.defineESModuleGetters(lazy, {
   EventDispatcher: "resource://gre/modules/Messaging.sys.mjs",
+  saveUri: "resource://gre/modules/RikkaSave.sys.mjs",
 });
 
-const EVENTS = ["Rikka:View:SetZoom", "Rikka:View:Snapshot", "Rikka:View:SavePdf"];
+const EVENTS = [
+  "Rikka:View:SetZoom",
+  "Rikka:View:Snapshot",
+  "Rikka:View:SavePdf",
+  "Rikka:View:PermitUnload",
+  "Rikka:View:Download",
+];
 
 const HTML = "http://www.w3.org/1999/xhtml";
 
@@ -94,6 +101,15 @@ export const RikkaView = {
                 return;
               case "Rikka:View:SavePdf":
                 await savePdf(browser, data?.path);
+                callback?.onSuccess();
+                return;
+              case "Rikka:View:PermitUnload": {
+                const global = browser.browsingContext.currentWindowGlobal;
+                callback?.onSuccess(global ? await global.permitUnload("prompt") : true);
+                return;
+              }
+              case "Rikka:View:Download":
+                await lazy.saveUri(window, browser, data?.uri);
                 callback?.onSuccess();
                 return;
             }
