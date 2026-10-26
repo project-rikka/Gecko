@@ -14,12 +14,30 @@ function keyOf(browser) {
   return `rikka-user-content:${browser.browserId}`;
 }
 
+const NAVIGATION_RETRIES = 5;
+
 function topActor(browser) {
   const actor = browser.browsingContext?.currentWindowGlobal?.getActor("RikkaUserContent");
   if (!actor) {
     throw new Error("The page has no document yet");
   }
   return actor;
+}
+
+function replacedByNavigation(error) {
+  return error?.name === "AbortError" || /destroyed before query/.test(String(error?.message));
+}
+
+async function askTopDocument(browser, name, data) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await topActor(browser).sendQuery(name, data);
+    } catch (error) {
+      if (attempt >= NAVIGATION_RETRIES || !replacedByNavigation(error)) {
+        throw error;
+      }
+    }
+  }
 }
 
 function stored(data) {
@@ -68,12 +86,12 @@ export const RikkaUserContent = {
               return;
             case "Rikka:UserContent:Evaluate":
               callback?.onSuccess(
-                await topActor(browser).sendQuery("Evaluate", { world: data?.world ?? null, source: String(data?.source ?? "") })
+                await askTopDocument(browser, "Evaluate", { world: data?.world ?? null, source: String(data?.source ?? "") })
               );
               return;
             case "Rikka:UserContent:Call":
               callback?.onSuccess(
-                await topActor(browser).sendQuery("Call", {
+                await askTopDocument(browser, "Call", {
                   world: data?.world ?? null,
                   body: String(data?.body ?? ""),
                   arguments: data?.arguments ?? {},
