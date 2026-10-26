@@ -1,0 +1,56 @@
+; This Source Code Form is subject to the terms of the Mozilla Public
+; License, v. 2.0. If a copy of the MPL was not distributed with this
+; file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#filter substitution
+
+[@AB_CD@]
+@RESPATH@/dictionaries/*
+@RESPATH@/localization/*
+@RESPATH@/hyphenation/*
+@RESPATH@/default.locale
+
+[xpcom]
+@RESPATH@/dependentlibs.list
+@BINPATH@/@DLL_PREFIX@nspr4@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@plc4@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@plds4@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@xul@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@mozgtk@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@mozwayland@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@onnxruntime@DLL_SUFFIX@
+@BINPATH@/gfxtest
+
+[rikka]
+@BINPATH@/@MOZ_APP_NAME@
+@RESPATH@/application.ini
+@RESPATH@/platform.ini
+@BINPATH@/@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@lgpllibs@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@gkcodecs@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@mozavutil@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@mozavcodec@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@mozinference@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@mozsandbox@DLL_SUFFIX@
+
+@RESPATH@/chrome.manifest
+@RESPATH@/chrome/*
+@RESPATH@/components/*.manifest
+@RESPATH@/modules/*
+@RESPATH@/moz-src/*
+@RESPATH@/actors/*
+@RESPATH@/greprefs.js
+@RESPATH@/defaults/*
+@RESPATH@/res/*
+@RESPATH@/contentaccessible/*
+
+@BINPATH@/@DLL_PREFIX@freeblpriv3@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@freebl3@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@nss3@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@nssutil3@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@smime3@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@ssl3@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@softokn3@DLL_SUFFIX@
+
+@RESPATH@/gmp-clearkey/0.1/@DLL_PREFIX@clearkey@DLL_SUFFIX@
+@RESPATH@/gmp-clearkey/0.1/manifest.json

@@ -23,3 +23,29 @@ include("../mobile/shared/moz.configure")
 include("../toolkit/moz.configure")
 
 set_config("MOZ_GECKOVIEW", True)
+
+
+@depends(build_environment.topsrcdir)
+@imports(_import="mozpack.path", _as="mozpath")
+def package_manifest(topsrcdir):
+    return mozpath.join(topsrcdir, "rikka", "installer", "package-manifest.in")
+
+
+set_config("MOZ_PKG_MANIFEST", package_manifest)
+set_config("MOZ_PKG_FATAL_WARNINGS", True)
+
+
+@depends(moz_app_name, moz_pkg_binpath, moz_pkg_respath)
+@imports(_from="mozbuild.packaging", _import="quote_defines")
+def package_manifest_defines(app_name, binpath, respath):
+    return quote_defines(
+        [
+            f"-DMOZ_APP_NAME={app_name}",
+            f"-DBINPATH={binpath}",
+            f"-DRESPATH={respath}",
+            "-DJAREXT=",
+        ]
+    )
+
+
+set_config("PACKAGE_MANIFEST_DEFINES", package_manifest_defines)

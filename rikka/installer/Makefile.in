@@ -6,4 +6,6 @@ STANDALONE_MAKEFILE := 1
 
 include $(topsrcdir)/config/rules.mk
 
+DEFINES += $(PACKAGE_MANIFEST_DEFINES)
+
 include $(topsrcdir)/toolkit/mozapps/installer/packager.mk
