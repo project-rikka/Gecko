@@ -19,4 +19,16 @@ if [[ ! -f $bootstrapped ]]; then
     touch "$bootstrapped"
 fi
 
+rust=$(awk -v quote="'" '
+    /^[^ ].*:$/ { channel = "" }
+    /--channel/ { split($0, field, quote); channel = field[4] }
+    /toolchain-alias: linux64-rust-toolchain$/ { print channel; exit }
+' taskcluster/kinds/toolchain/rust.yml)
+if [[ -z $rust ]]; then
+    echo "found no linux64-rust-toolchain channel in taskcluster/kinds/toolchain/rust.yml" >&2
+    exit 1
+fi
+rustup toolchain install "$rust" --profile minimal
+export RUSTUP_TOOLCHAIN=$rust
+
 ./mach build
