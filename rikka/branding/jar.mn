@@ -1,0 +1,24 @@
+#filter substitution
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+rikka.jar:
+% content branding %content/branding/ contentaccessible=yes
+  content/branding/about.png                    (/browser/branding/unofficial/content/about.png)
+  content/branding/about-logo.png               (/browser/branding/unofficial/content/about-logo.png)
+  content/branding/about-logo@2x.png            (/browser/branding/unofficial/content/about-logo@2x.png)
+  content/branding/about-logo.svg               (/browser/branding/unofficial/content/about-logo.svg)
+  content/branding/about-wordmark.svg           (/browser/branding/unofficial/content/about-wordmark.svg)
+  content/branding/icon16.png                   (/browser/branding/unofficial/default16.png)
+  content/branding/icon32.png                   (/browser/branding/unofficial/default32.png)
+  content/branding/icon48.png                   (/browser/branding/unofficial/default48.png)
+  content/branding/icon64.png                   (/browser/branding/unofficial/default64.png)
+  content/branding/icon128.png                  (/browser/branding/unofficial/default128.png)
+
+[localization] @AB_CD@.jar:
+  branding                                      (en-US/**/*.ftl)
+
+@AB_CD@.jar:
+% locale branding @AB_CD@ %locale/branding/
+  locale/branding/brand.properties              (en-US/brand.properties)

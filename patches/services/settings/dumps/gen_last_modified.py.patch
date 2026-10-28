@@ -1,0 +1,20 @@
+diff --git a/services/settings/dumps/gen_last_modified.py b/services/settings/dumps/gen_last_modified.py
+index d16eaa01e3..46f673e1ba 100644
+--- a/services/settings/dumps/gen_last_modified.py
++++ b/services/settings/dumps/gen_last_modified.py
+@@ -55,13 +55,14 @@ def main(output):
+         "mobile/ios",
+         "comm/mail",
+         "comm/suite",
++        "rikka",
+     ), (
+         "Cannot determine location of Remote Settings "
+         f"dumps for platform {buildconfig.substs['MOZ_BUILD_APP']}"
+     )
+ 
+     dumps_locations = []
+-    if buildconfig.substs["MOZ_BUILD_APP"] == "browser":
++    if buildconfig.substs["MOZ_BUILD_APP"] in ("browser", "rikka"):
+         dumps_locations += ["services/settings/dumps/"]
+     elif buildconfig.substs["MOZ_BUILD_APP"] == "mobile/android":
+         dumps_locations += ["services/settings/dumps/"]

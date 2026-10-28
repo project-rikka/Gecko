@@ -1,0 +1,17 @@
+diff --git a/widget/gtk/nsWindow.cpp b/widget/gtk/nsWindow.cpp
+index 42d7d8a885..36fa3952ca 100644
+--- a/widget/gtk/nsWindow.cpp
++++ b/widget/gtk/nsWindow.cpp
+@@ -6674,6 +6674,12 @@ bool nsWindow::IsAlwaysUndecoratedWindow() const {
+       !(mBorderStyle & BorderStyle::ResizeH)) {
+     return true;
+   }
++  if (mWindowType == WindowType::TopLevel &&
++      mBorderStyle != BorderStyle::Default &&
++      mBorderStyle != BorderStyle::All &&
++      !(mBorderStyle & BorderStyle::Title)) {
++    return true;
++  }
+   return false;
+ }
+ 

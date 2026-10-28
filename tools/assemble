@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+source "$(dirname "$0")/common.sh"
+
+"$ROOT/tools/fetch"
+
+applied=$( { echo "$FIREFOX_COMMIT"; patches | while read -r patch; do cat "$ROOT/patches/$patch"; done; } | sha256sum | cut -d' ' -f1)
+if [[ $(cat "$WORK/applied" 2>/dev/null || true) != "$applied" ]]; then
+    apply_patches
+    echo "$applied" > "$WORK/applied"
+fi
+
+rsync -a --delete --exclude /config/ "$ROOT/rikka/" "$TREE/rikka/"
+mkdir -p "$TREE/rikka/config"
+cp -p "$TREE/browser/config/version.txt" "$TREE/browser/config/version_display.txt" "$TREE/rikka/config/"

@@ -1,0 +1,13 @@
+diff --git a/toolkit/mozapps/extensions/internal/XPIProvider.sys.mjs b/toolkit/mozapps/extensions/internal/XPIProvider.sys.mjs
+index 74d738e46f..1d9495d0a3 100644
+--- a/toolkit/mozapps/extensions/internal/XPIProvider.sys.mjs
++++ b/toolkit/mozapps/extensions/internal/XPIProvider.sys.mjs
+@@ -2779,7 +2779,7 @@ export var XPIProvider = {
+       const isInAutomationOrXPCShellTests =
+         Cu.isInAutomation || Services.env.exists("XPCSHELL_TEST_PROFILE_DIR");
+       if (
+-        AppConstants.platform != "android" &&
++        !AppConstants.MOZ_GECKOVIEW &&
+         !(isInAutomationOrXPCShellTests && lazy.skipDefaultThemeInstall)
+       ) {
+         // Keep version in sync with toolkit/mozapps/extensions/default-theme/manifest.json

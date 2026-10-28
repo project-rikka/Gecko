@@ -1,0 +1,13 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+JAR_MANIFESTS += ["jar.mn"]
+
+FINAL_TARGET_FILES.chrome.icons.default += [
+    "/browser/branding/unofficial/default128.png",
+    "/browser/branding/unofficial/default16.png",
+    "/browser/branding/unofficial/default32.png",
+    "/browser/branding/unofficial/default48.png",
+    "/browser/branding/unofficial/default64.png",
+]

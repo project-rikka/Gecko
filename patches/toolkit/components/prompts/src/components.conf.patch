@@ -1,0 +1,13 @@
+diff --git a/toolkit/components/prompts/src/components.conf b/toolkit/components/prompts/src/components.conf
+index 3b7548fa36..a2c5eaf97d 100644
+--- a/toolkit/components/prompts/src/components.conf
++++ b/toolkit/components/prompts/src/components.conf
+@@ -12,7 +12,7 @@ Classes = [
+     },
+ ]
+ 
+-if buildconfig.substs['MOZ_WIDGET_TOOLKIT'] not in ('android', 'uikit'):
++if buildconfig.substs['MOZ_WIDGET_TOOLKIT'] not in ('android', 'uikit') and not defined('MOZ_GECKOVIEW'):
+     Classes += [
+         {
+             'js_name': 'prompt',

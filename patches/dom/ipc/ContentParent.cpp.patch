@@ -1,0 +1,21 @@
+diff --git a/dom/ipc/ContentParent.cpp b/dom/ipc/ContentParent.cpp
+index 202f922d97..84d7f96e8d 100644
+--- a/dom/ipc/ContentParent.cpp
++++ b/dom/ipc/ContentParent.cpp
+@@ -5347,6 +5347,16 @@ mozilla::ipc::IPCResult ContentParent::CommonCreateWindow(
+   openInfo->mIsTopLevelCreatedByWebContent = aIsTopLevelCreatedByWebContent;
+   openInfo->mHasValidUserGestureActivation = aUserActivation;
+   openInfo->mTextDirectiveUserActivation = aTextDirectiveUserActivation;
++  int32_t modifiedLocation = 0;
++  openInfo->mIsPopupRequested =
++      aCalledFromJS &&
++      !nsWindowWatcher::IsWindowOpenLocationModified(aModifiers,
++                                                     &modifiedLocation) &&
++      !(aChromeFlags & nsIWebBrowserChrome::CHROME_DOCUMENT_PIP) &&
++      (aChromeFlags & ~(nsIWebBrowserChrome::CHROME_REMOTE_WINDOW |
++                        nsIWebBrowserChrome::CHROME_FISSION_WINDOW)) !=
++          nsIWebBrowserChrome::CHROME_ALL;
++  openInfo->mFeatures = aFeatures;
+   openInfo->mPrincipalToInheritForAboutBlank = aTriggeringPrincipal;
+   MOZ_ASSERT(
+       aOriginAttributes == openInfo->GetOriginAttributes(),

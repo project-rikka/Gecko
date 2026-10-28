@@ -1,0 +1,38 @@
+name: Protocol
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - protocol/**
+      - .github/workflows/protocol.yml
+  pull_request:
+    paths:
+      - protocol/**
+      - .github/workflows/protocol.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: protocol-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test rikka-gecko-protocol
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: protocol
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - run: rustup toolchain install stable --profile minimal --component clippy,rustfmt && rustup default stable
+
+      - run: cargo fmt --check
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo test --locked

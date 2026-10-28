@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+source "$(dirname "$0")/common.sh"
+
+"$ROOT/tools/assemble"
+
+cd "$TREE"
+bootstrapped="$MOZBUILD_STATE_PATH/rikka-bootstrapped-$FIREFOX_COMMIT"
+if [[ ! -f $bootstrapped ]]; then
+    ./mach --no-interactive bootstrap --application-choice "Firefox for Desktop"
+    touch "$bootstrapped"
+fi
+
+rust=$(awk -v quote="'" '
+    /^[^ ].*:$/ { channel = "" }
+    /--channel/ { split($0, field, quote); channel = field[4] }
+    /(toolchain-alias|default): linux64-rust$/ { print channel; exit }
+' taskcluster/kinds/toolchain/rust.yml)
+if [[ -z $rust ]]; then
+    echo "found no channel for the linux64-rust toolchain in taskcluster/kinds/toolchain/rust.yml" >&2
+    exit 1
+fi
+rustup toolchain install "$rust" --profile minimal
+export RUSTUP_TOOLCHAIN=$rust
+
+./mach build

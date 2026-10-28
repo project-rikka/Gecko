@@ -1,0 +1,21 @@
+diff --git a/widget/gtk/components.conf b/widget/gtk/components.conf
+index b9fc44db0..a8f82bb97 100644
+--- a/widget/gtk/components.conf
++++ b/widget/gtk/components.conf
+@@ -34,14 +34,14 @@ Classes = [
+     },
+     {
+         'cid': '{4364de1a-798e-419c-a6f5-ca28866b6d5f}',
+-        'contract_ids': ['@mozilla.org/parent/colorpicker;1'],
++        'contract_ids': [] if defined('MOZ_GECKOVIEW') else ['@mozilla.org/parent/colorpicker;1'],
+         'type': 'nsColorPicker',
+         'headers': ['/widget/gtk/nsColorPicker.h'],
+         'processes': ProcessSelector.MAIN_PROCESS_ONLY,
+     },
+     {
+         'cid': '{1940fed5-7d02-4122-8acf-7abaac698983}',
+-        'contract_ids': ['@mozilla.org/parent/filepicker;1'],
++        'contract_ids': [] if defined('MOZ_GECKOVIEW') else ['@mozilla.org/parent/filepicker;1'],
+         'type': 'nsFilePicker',
+         'headers': ['/widget/gtk/nsFilePicker.h'],
+         'processes': ProcessSelector.MAIN_PROCESS_ONLY,

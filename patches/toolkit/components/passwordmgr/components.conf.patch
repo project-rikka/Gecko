@@ -1,0 +1,13 @@
+diff --git a/toolkit/components/passwordmgr/components.conf b/toolkit/components/passwordmgr/components.conf
+index 8768ff6629..fdaff9b389 100644
+--- a/toolkit/components/passwordmgr/components.conf
++++ b/toolkit/components/passwordmgr/components.conf
+@@ -43,7 +43,7 @@ Classes = [
+     },
+ ]
+ 
+-if buildconfig.substs['MOZ_WIDGET_TOOLKIT'] not in ('android', 'uikit'):
++if buildconfig.substs['MOZ_WIDGET_TOOLKIT'] not in ('android', 'uikit') and not defined('MOZ_GECKOVIEW'):
+      Classes += [
+         {
+             'cid': '{c47ff942-9678-44a5-bc9b-05e0d676c79c}',

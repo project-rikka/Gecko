@@ -1,0 +1,30 @@
+diff --git a/toolkit/components/windowwatcher/nsOpenWindowInfo.cpp b/toolkit/components/windowwatcher/nsOpenWindowInfo.cpp
+index 4e61c89fca..f782c785ff 100644
+--- a/toolkit/components/windowwatcher/nsOpenWindowInfo.cpp
++++ b/toolkit/components/windowwatcher/nsOpenWindowInfo.cpp
+@@ -22,6 +22,8 @@ nsOpenWindowInfo::nsOpenWindowInfo(const nsOpenWindowInfo& aOther)
+       mIsTopLevelCreatedByWebContent(aOther.mIsTopLevelCreatedByWebContent),
+       mHasValidUserGestureActivation(aOther.mHasValidUserGestureActivation),
+       mTextDirectiveUserActivation(aOther.mTextDirectiveUserActivation),
++      mIsPopupRequested(aOther.mIsPopupRequested),
++      mFeatures(aOther.mFeatures),
+       mNextRemoteBrowser(aOther.mNextRemoteBrowser),
+       mParent(aOther.mParent),
+       mBrowsingContextReadyCallback(aOther.mBrowsingContextReadyCallback),
+@@ -77,6 +79,16 @@ NS_IMETHODIMP nsOpenWindowInfo::GetTextDirectiveUserActivation(
+   return NS_OK;
+ }
+ 
++NS_IMETHODIMP nsOpenWindowInfo::GetIsPopupRequested(bool* aIsPopupRequested) {
++  *aIsPopupRequested = mIsPopupRequested;
++  return NS_OK;
++}
++
++NS_IMETHODIMP nsOpenWindowInfo::GetFeatures(nsACString& aFeatures) {
++  aFeatures = mFeatures;
++  return NS_OK;
++}
++
+ NS_IMETHODIMP nsOpenWindowInfo::GetScriptableOriginAttributes(
+     JSContext* aCx, JS::MutableHandle<JS::Value> aAttrs) {
+   bool ok = ToJSValue(aCx, GetOriginAttributes(), aAttrs);

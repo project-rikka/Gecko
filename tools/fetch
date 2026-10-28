@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+source "$(dirname "$0")/common.sh"
+
+if [[ $(git -C "$TREE" rev-parse --verify -q 'HEAD^{commit}' 2> /dev/null || true) != "$FIREFOX_COMMIT" ]]; then
+    rm -rf "$TREE" "$WORK/applied"
+    mkdir -p "$TREE"
+    git -C "$TREE" init -q
+    git -C "$TREE" remote add origin "$FIREFOX_REPOSITORY"
+    git -C "$TREE" fetch --depth=1 --no-tags origin "$FIREFOX_COMMIT"
+    git -C "$TREE" checkout -q --detach FETCH_HEAD
+fi

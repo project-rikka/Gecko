@@ -1,0 +1,81 @@
+name: Follow Firefox
+
+on:
+  schedule:
+    - cron: "23 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream
+  cancel-in-progress: false
+
+jobs:
+  follow:
+    name: Rebase onto the latest Firefox release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Rebase patches
+        id: rebase
+        env:
+          RIKKA_GECKO_WORK: ${{ runner.temp }}/gecko
+        run: |
+          tools/upstream > "$RUNNER_TEMP/unresolved"
+          if git diff --quiet -- upstream.env; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          source upstream.env
+          {
+            echo "changed=true"
+            echo "version=$FIREFOX_VERSION"
+            echo "tag=$FIREFOX_TAG"
+            echo "branch=upstream/firefox-$FIREFOX_VERSION"
+            echo "unresolved=$(wc -l < "$RUNNER_TEMP/unresolved")"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Propose the rebase
+        if: steps.rebase.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.rebase.outputs.version }}
+          TAG: ${{ steps.rebase.outputs.tag }}
+          BRANCH: ${{ steps.rebase.outputs.branch }}
+          UNRESOLVED: ${{ steps.rebase.outputs.unresolved }}
+        run: |
+          if git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null; then
+            echo "$BRANCH already proposes Firefox $VERSION"
+            exit 0
+          fi
+
+          git switch -c "$BRANCH"
+          git add -A upstream.env patches
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -q -m "Follow Firefox $VERSION"
+          git push -q origin "$BRANCH"
+
+          body="$RUNNER_TEMP/body.md"
+          echo "Moves the engine onto \`$TAG\`, carrying the patches over with a three-way merge; only patches whose change no longer applies as written are rewritten." > "$body"
+          if (( UNRESOLVED )); then
+            {
+              echo
+              echo "These patches conflict with the new release and still target the previous one:"
+              echo
+              while read -r patch; do echo "- \`patches/$patch\`"; done < "$RUNNER_TEMP/unresolved"
+              echo
+              echo "On this branch run \`git checkout origin/main -- upstream.env patches && tools/upstream\`, resolve the conflict markers in the listed files under \`.cache/firefox\`, run \`tools/export-patches\` and push."
+            } >> "$body"
+            gh pr create --draft --head "$BRANCH" --title "Follow Firefox $VERSION" --body-file "$body"
+          else
+            gh pr create --head "$BRANCH" --title "Follow Firefox $VERSION" --body-file "$body"
+            gh workflow run build.yml --ref "$BRANCH"
+          fi

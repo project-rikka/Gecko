@@ -1,0 +1,127 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - protocol/**
+      - .github/dependabot.yml
+      - .github/workflows/protocol.yml
+      - .github/workflows/upstream.yml
+      - flake.nix
+      - flake.lock
+      - LICENSE
+  pull_request:
+    paths-ignore:
+      - protocol/**
+      - .github/dependabot.yml
+      - .github/workflows/protocol.yml
+      - .github/workflows/upstream.yml
+      - flake.nix
+      - flake.lock
+      - LICENSE
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build engine
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      RIKKA_GECKO_WORK: /mnt/gecko
+      RIKKA_GECKO_PROFILE: release
+      SCCACHE_CACHE_SIZE: 6G
+    outputs:
+      archive: ${{ steps.package.outputs.archive }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Prepare disk and swap
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/share/swift /usr/local/lib/android /usr/local/.ghcup /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo install -d -o "$USER" -g "$(id -gn)" "$RIKKA_GECKO_WORK"
+          sudo fallocate -l 24G /mnt/gecko.swap
+          sudo chmod 600 /mnt/gecko.swap
+          sudo mkswap /mnt/gecko.swap
+          sudo swapon /mnt/gecko.swap
+          df -h / /mnt
+          free -h
+
+      - name: Read upstream pin
+        id: upstream
+        run: |
+          source upstream.env
+          echo "commit=$FIREFOX_COMMIT" >> "$GITHUB_OUTPUT"
+
+      - name: Restore compiler cache
+        id: sccache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.RIKKA_GECKO_WORK }}/sccache
+          key: sccache-${{ env.RIKKA_GECKO_PROFILE }}-${{ steps.upstream.outputs.commit }}-${{ github.sha }}-${{ github.run_attempt }}
+          restore-keys: |
+            sccache-${{ env.RIKKA_GECKO_PROFILE }}-${{ steps.upstream.outputs.commit }}-
+            sccache-${{ env.RIKKA_GECKO_PROFILE }}-
+
+      - name: Build
+        timeout-minutes: 320
+        run: tools/build
+
+      - name: Save compiler cache
+        if: always() && github.event_name != 'pull_request' && steps.sccache.outcome == 'success'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.RIKKA_GECKO_WORK }}/sccache
+          key: ${{ steps.sccache.outputs.cache-primary-key }}
+
+      - name: Package
+        id: package
+        run: |
+          tools/package "$RUNNER_TEMP/out"
+          archive=$(basename "$RUNNER_TEMP"/out/*.tar.zst)
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rikka-gecko
+          path: ${{ runner.temp }}/out/
+          compression-level: 0
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: rikka-gecko
+          path: ${{ runner.temp }}/out
+
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/out/${{ needs.build.outputs.archive }}
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: tools/release "$RUNNER_TEMP/out/${{ needs.build.outputs.archive }}"

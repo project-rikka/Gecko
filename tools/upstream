@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+source "$(dirname "$0")/common.sh"
+
+version=$(git ls-remote --tags --refs "$FIREFOX_REPOSITORY" 'FIREFOX_*_RELEASE' \
+    | sed -nE 's#^[0-9a-f]{40}\trefs/tags/FIREFOX_([0-9]+(_[0-9]+)+)_RELEASE$#\1#p' \
+    | tr _ . | sort -V | tail -n 1)
+if [[ -z $version ]]; then
+    echo "found no Firefox release tag in $FIREFOX_REPOSITORY" >&2
+    exit 1
+fi
+if [[ $(printf '%s\n%s\n' "$FIREFOX_VERSION" "$version" | sort -V | tail -n 1) == "$FIREFOX_VERSION" ]]; then
+    echo "Firefox $FIREFOX_VERSION is the latest release" >&2
+    exit 0
+fi
+
+tag="FIREFOX_${version//./_}_RELEASE"
+commit=$(git ls-remote "$FIREFOX_REPOSITORY" "refs/tags/$tag" "refs/tags/$tag^{}" | sort -k2,2r | head -n 1 | cut -f1)
+echo "rebasing from Firefox $FIREFOX_VERSION onto $version ($commit)" >&2
+
+"$ROOT/tools/fetch"
+rm -f "$WORK/applied"
+apply_patches
+git -C "$TREE" -c user.name=rikka-gecko -c user.email=rikka-gecko@localhost \
+    commit -q -a --allow-empty -m "Rikka patches on Firefox $FIREFOX_VERSION"
+patched=$(git -C "$TREE" rev-parse HEAD)
+
+git -C "$TREE" fetch -q --depth=1 --no-tags origin "$commit"
+git -C "$TREE" checkout -q --detach FETCH_HEAD
+unresolved=()
+if ! git -C "$TREE" cherry-pick --no-commit "$patched" >&2; then
+    mapfile -t unresolved < <(git -C "$TREE" diff --name-only --diff-filter=U)
+    if (( ! ${#unresolved[@]} )); then
+        echo "could not carry the patches onto $tag" >&2
+        exit 1
+    fi
+fi
+git -C "$TREE" reset -q
+
+for file in "${unresolved[@]}"; do
+    echo "resolve $TREE/$file, then run tools/export-patches" >&2
+done
+export_patches "${unresolved[@]}"
+
+cat > "$ROOT/upstream.env" << EOF
+FIREFOX_REPOSITORY=$FIREFOX_REPOSITORY
+FIREFOX_TAG=$tag
+FIREFOX_COMMIT=$commit
+FIREFOX_VERSION=$version
+EOF
+
+if (( ${#unresolved[@]} )); then
+    printf '%s.patch\n' "${unresolved[@]}"
+fi

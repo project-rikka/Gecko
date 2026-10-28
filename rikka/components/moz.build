@@ -1,0 +1,33 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+XPCOM_MANIFESTS += [
+    "components.conf",
+]
+
+EXTRA_JS_MODULES += [
+    "RikkaAlerts.sys.mjs",
+    "RikkaCapture.sys.mjs",
+    "RikkaCaptureChild.sys.mjs",
+    "RikkaCaptureParent.sys.mjs",
+    "RikkaCaptureProcessChild.sys.mjs",
+    "RikkaCertificates.sys.mjs",
+    "RikkaDownloads.sys.mjs",
+    "RikkaEditing.sys.mjs",
+    "RikkaEditingChild.sys.mjs",
+    "RikkaEditingParent.sys.mjs",
+    "RikkaExtensionIcons.sys.mjs",
+    "RikkaHelperAppDialog.sys.mjs",
+    "RikkaLinkChild.sys.mjs",
+    "RikkaLinkParent.sys.mjs",
+    "RikkaPageChild.sys.mjs",
+    "RikkaPageParent.sys.mjs",
+    "RikkaSave.sys.mjs",
+    "RikkaStartup.sys.mjs",
+    "RikkaStorage.sys.mjs",
+    "RikkaUserContent.sys.mjs",
+    "RikkaUserContentChild.sys.mjs",
+    "RikkaUserContentParent.sys.mjs",
+    "RikkaView.sys.mjs",
+]
