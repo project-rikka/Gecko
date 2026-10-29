@@ -1,0 +1,62 @@
+diff --git a/layout/generic/ScrollAnimationRikkaPhysics.h b/layout/generic/ScrollAnimationRikkaPhysics.h
+new file mode 100644
+index 0000000000..2399904908
+--- /dev/null
++++ b/layout/generic/ScrollAnimationRikkaPhysics.h
+@@ -0,0 +1,56 @@
++/* This Source Code Form is subject to the terms of the Mozilla Public
++ * License, v. 2.0. If a copy of the MPL was not distributed with this
++ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
++
++#ifndef mozilla_layout_ScrollAnimationRikkaPhysics_h_
++#define mozilla_layout_ScrollAnimationRikkaPhysics_h_
++
++#include "ScrollAnimationPhysics.h"
++
++namespace mozilla {
++
++class ScrollAnimationRikkaPhysics final : public ScrollAnimationPhysics {
++ public:
++  enum class Drive : uint8_t { Impel, Aim };
++
++  ScrollAnimationRikkaPhysics(Drive aDrive, const nsPoint& aStartPos,
++                              nscoord aSmallestVisibleIncrement);
++
++  void Update(const TimeStamp& aTime, const nsPoint& aDestination,
++              const nsSize& aCurrentVelocity) override;
++
++  void ApplyContentShift(const CSSPoint& aShiftDelta) override;
++
++  nsSize VelocityAt(const TimeStamp& aTime) override;
++
++  nsPoint PositionAt(const TimeStamp& aTime) override;
++
++  bool IsFinished(const TimeStamp& aTime) override;
++
++ private:
++  struct Axis {
++    double mGap = 0.0;
++    double mVelocity = 0.0;
++
++    Axis After(double aOmega, double aSeconds) const;
++  };
++
++  struct State {
++    Axis mX;
++    Axis mY;
++  };
++
++  State At(const TimeStamp& aTime) const;
++
++  Drive mDrive;
++  double mOmega;
++  double mRest;
++  TimeStamp mSince;
++  nsPoint mDestination;
++  State mState;
++  bool mStarted = false;
++};
++
++}
++
++#endif

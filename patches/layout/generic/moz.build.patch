@@ -1,0 +1,20 @@
+diff --git a/layout/generic/moz.build b/layout/generic/moz.build
+index 101e6d7b83..ad66a31295 100644
+--- a/layout/generic/moz.build
++++ b/layout/generic/moz.build
+@@ -123,6 +123,7 @@ EXPORTS += [
+     "ScrollAnimationBezierPhysics.h",
+     "ScrollAnimationMSDPhysics.h",
+     "ScrollAnimationPhysics.h",
++    "ScrollAnimationRikkaPhysics.h",
+     "ScrollbarActivity.h",
+     "ScrollSnap.h",
+     "ScrollVelocityQueue.h",
+@@ -223,6 +224,7 @@ UNIFIED_SOURCES += [
+     "ScrollAnchorContainer.cpp",
+     "ScrollAnimationBezierPhysics.cpp",
+     "ScrollAnimationMSDPhysics.cpp",
++    "ScrollAnimationRikkaPhysics.cpp",
+     "ScrollbarActivity.cpp",
+     "ScrollContainerFrame.cpp",
+     "ScrollPositionUpdate.cpp",

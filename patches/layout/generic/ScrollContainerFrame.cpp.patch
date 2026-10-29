@@ -1,0 +1,27 @@
+diff --git a/layout/generic/ScrollContainerFrame.cpp b/layout/generic/ScrollContainerFrame.cpp
+index b96ed7bb42..9a1633dcb2 100644
+--- a/layout/generic/ScrollContainerFrame.cpp
++++ b/layout/generic/ScrollContainerFrame.cpp
+@@ -18,6 +18,7 @@
+ #include "ScrollAnimationBezierPhysics.h"
+ #include "ScrollAnimationMSDPhysics.h"
+ #include "ScrollAnimationPhysics.h"
++#include "ScrollAnimationRikkaPhysics.h"
+ #include "ScrollPositionUpdate.h"
+ #include "ScrollSnap.h"
+ #include "ScrollbarActivity.h"
+@@ -2257,7 +2258,13 @@ void ScrollContainerFrame::AsyncScroll::InitSmoothScroll(
+   // Read preferences only on first iteration or for a different event origin.
+   if (!mAnimationPhysics || aOrigin != mOrigin) {
+     mOrigin = aOrigin;
+-    if (StaticPrefs::general_smoothScroll_msdPhysics_enabled()) {
++    if (StaticPrefs::general_smoothScroll_rikka_enabled()) {
++      mAnimationPhysics = MakeUnique<ScrollAnimationRikkaPhysics>(
++          mOrigin == ScrollOrigin::MouseWheel || mOrigin == ScrollOrigin::Pixels
++              ? ScrollAnimationRikkaPhysics::Drive::Impel
++              : ScrollAnimationRikkaPhysics::Drive::Aim,
++          aInitialPosition, AppUnitsPerCSSPixel());
++    } else if (StaticPrefs::general_smoothScroll_msdPhysics_enabled()) {
+       mAnimationPhysics = MakeUnique<ScrollAnimationMSDPhysics>(
+           apz::ScrollAnimationKind::Smooth, aInitialPosition,
+           /*smallestVisibleIncrement=*/1.0);

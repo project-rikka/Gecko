@@ -10,6 +10,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
   RikkaDownloads: "resource://gre/modules/RikkaDownloads.sys.mjs",
   RikkaEditing: "resource://gre/modules/RikkaEditing.sys.mjs",
   RikkaExtensionIcons: "resource://gre/modules/RikkaExtensionIcons.sys.mjs",
+  RikkaNetwork: "resource://gre/modules/RikkaNetwork.sys.mjs",
   RikkaStorage: "resource://gre/modules/RikkaStorage.sys.mjs",
   RikkaUserContent: "resource://gre/modules/RikkaUserContent.sys.mjs",
   RikkaView: "resource://gre/modules/RikkaView.sys.mjs",
@@ -46,5 +47,6 @@ export class RikkaStartup {
     new lazy.RikkaDownloads().start();
     new lazy.RikkaStorage().start();
     new lazy.RikkaExtensionIcons().start();
+    new lazy.RikkaNetwork().start();
   }
 }

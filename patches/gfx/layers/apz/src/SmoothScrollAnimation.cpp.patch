@@ -1,0 +1,38 @@
+diff --git a/gfx/layers/apz/src/SmoothScrollAnimation.cpp b/gfx/layers/apz/src/SmoothScrollAnimation.cpp
+index ec6f488e49..4d5f2c7d4c 100644
+--- a/gfx/layers/apz/src/SmoothScrollAnimation.cpp
++++ b/gfx/layers/apz/src/SmoothScrollAnimation.cpp
+@@ -7,6 +7,7 @@
+ #include "AsyncPanZoomController.h"
+ #include "ScrollAnimationBezierPhysics.h"
+ #include "ScrollAnimationMSDPhysics.h"
++#include "ScrollAnimationRikkaPhysics.h"
+ #include "ScrollPositionUpdate.h"
+ #include "Units.h"
+ #include "mozilla/RelativeTo.h"
+@@ -82,9 +83,22 @@ SmoothScrollAnimation::SmoothScrollAnimation(ScrollAnimationKind aKind,
+   // ScrollAnimationBezierPhysics (despite its name) handles the case of
+   // general.smoothScroll being disabled whereas ScrollAnimationMSDPhysics does
+   // not (ie it scrolls smoothly).
+-  if (mKind == ScrollAnimationKind::SmoothMsd ||
+-      (nsLayoutUtils::IsSmoothScrollingEnabled() &&
+-       StaticPrefs::general_smoothScroll_msdPhysics_enabled())) {
++  if (StaticPrefs::general_smoothScroll_rikka_enabled() &&
++      (mKind == ScrollAnimationKind::SmoothMsd ||
++       nsLayoutUtils::IsSmoothScrollingEnabled())) {
++    const CSSToParentLayerScale zoom = mApzc.GetFrameMetrics().GetZoom();
++    const nscoord pixel =
++        zoom == CSSToParentLayerScale(0)
++            ? 1
++            : CSSPixel::ToAppUnits(ParentLayerCoord(1) / zoom);
++    mAnimationPhysics = MakeUnique<ScrollAnimationRikkaPhysics>(
++        mKind == ScrollAnimationKind::Wheel
++            ? ScrollAnimationRikkaPhysics::Drive::Impel
++            : ScrollAnimationRikkaPhysics::Drive::Aim,
++        mFinalDestination, pixel);
++  } else if (mKind == ScrollAnimationKind::SmoothMsd ||
++             (nsLayoutUtils::IsSmoothScrollingEnabled() &&
++              StaticPrefs::general_smoothScroll_msdPhysics_enabled())) {
+     nscoord smallestVisibleIncrement = 1;
+     if (mKind == ScrollAnimationKind::SmoothMsd &&
+         mApzc.GetFrameMetrics().GetZoom() != CSSToParentLayerScale(0)) {

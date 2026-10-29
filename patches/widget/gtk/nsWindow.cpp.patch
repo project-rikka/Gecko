@@ -1,8 +1,82 @@
 diff --git a/widget/gtk/nsWindow.cpp b/widget/gtk/nsWindow.cpp
-index 42d7d8a885..36fa3952ca 100644
+index 42d7d8a885..ffc90187c7 100644
 --- a/widget/gtk/nsWindow.cpp
 +++ b/widget/gtk/nsWindow.cpp
-@@ -6674,6 +6674,12 @@ bool nsWindow::IsAlwaysUndecoratedWindow() const {
+@@ -45,6 +45,7 @@
+ #include "mozilla/ScopeExit.h"
+ #include "mozilla/StaticPrefs_apz.h"
+ #include "mozilla/StaticPrefs_dom.h"
++#include "mozilla/StaticPrefs_general.h"
+ #include "mozilla/StaticPrefs_layout.h"
+ #include "mozilla/StaticPrefs_mozilla.h"
+ #include "mozilla/StaticPrefs_ui.h"
+@@ -147,6 +148,25 @@ constexpr gint kResizableStates =
+     GDK_WINDOW_STATE_TOP_RESIZABLE | GDK_WINDOW_STATE_RIGHT_RESIZABLE |
+     GDK_WINDOW_STATE_BOTTOM_RESIZABLE | GDK_WINDOW_STATE_LEFT_RESIZABLE;
+ 
++constexpr double kGdkWaylandAxisUnit = 10.0;
++
++static void SetRikkaScrollDeltas(WidgetWheelEvent& aEvent, double aDeltaX,
++                                 double aDeltaY, bool aContinuous,
++                                 double aScale) {
++  const double pixels =
++      (aContinuous ? kGdkWaylandAxisUnit
++                   : StaticPrefs::general_smoothScroll_rikka_notch()) *
++      aScale;
++  aEvent.mDeltaMode = dom::WheelEvent_Binding::DOM_DELTA_PIXEL;
++  aEvent.mDeltaX = aDeltaX * pixels;
++  aEvent.mDeltaY = aDeltaY * pixels;
++  if (!aContinuous) {
++    aEvent.mWheelTicksX = aDeltaX;
++    aEvent.mWheelTicksY = aDeltaY;
++  }
++  aEvent.mIsNoLineOrPageDelta = true;
++}
++
+ #if !GTK_CHECK_VERSION(3, 18, 0)
+ struct _GdkEventTouchpadPinch {
+   GdkEventType type;
+@@ -3362,6 +3382,13 @@ void nsWindow::OnScrollEvent(GdkEventScroll* aEvent) {
+       // (also known as kinetic/inertial/momentum scrolling)
+       GdkDevice* device = gdk_event_get_source_device((GdkEvent*)aEvent);
+       GdkInputSource source = gdk_device_get_source(device);
++      if (StaticPrefs::general_smoothScroll_rikka_enabled()) {
++        SetRikkaScrollDeltas(
++            wheelEvent, aEvent->delta_x, aEvent->delta_y,
++            source == GDK_SOURCE_TOUCHSCREEN || source == GDK_SOURCE_TOUCHPAD,
++            FractionalScaleFactor());
++        break;
++      }
+       if (source == GDK_SOURCE_TOUCHSCREEN || source == GDK_SOURCE_TOUCHPAD ||
+           mCurrentSynthesizedTouchpadPan.mTouchpadGesturePhase.isSome()) {
+         if (StaticPrefs::apz_gtk_pangesture_enabled() &&
+@@ -3496,13 +3523,18 @@ void nsWindow::OnSmoothScrollEvent(uint32_t aTime, float aDeltaX,
+   }
+ 
+   WidgetWheelEvent wheelEvent(true, eWheel, this);
+-  wheelEvent.mDeltaMode = dom::WheelEvent_Binding::DOM_DELTA_LINE;
+-  // Use the same constant as nsWindow::OnScrollEvent().
+-  wheelEvent.mDeltaX = aDeltaX * 3;
+-  wheelEvent.mDeltaY = aDeltaY * 3;
+-  wheelEvent.mWheelTicksX = aDeltaX;
+-  wheelEvent.mWheelTicksY = aDeltaY;
+-  wheelEvent.mIsNoLineOrPageDelta = true;
++  if (StaticPrefs::general_smoothScroll_rikka_enabled()) {
++    SetRikkaScrollDeltas(wheelEvent, aDeltaX, aDeltaY, false,
++                         FractionalScaleFactor());
++  } else {
++    wheelEvent.mDeltaMode = dom::WheelEvent_Binding::DOM_DELTA_LINE;
++    // Use the same constant as nsWindow::OnScrollEvent().
++    wheelEvent.mDeltaX = aDeltaX * 3;
++    wheelEvent.mDeltaY = aDeltaY * 3;
++    wheelEvent.mWheelTicksX = aDeltaX;
++    wheelEvent.mWheelTicksY = aDeltaY;
++    wheelEvent.mIsNoLineOrPageDelta = true;
++  }
+   wheelEvent.mRefPoint = GdkEventCoordsToDevicePixels(mLastMouseCoordinates.mX,
+                                                       mLastMouseCoordinates.mY);
+ 
+@@ -6674,6 +6706,12 @@ bool nsWindow::IsAlwaysUndecoratedWindow() const {
        !(mBorderStyle & BorderStyle::ResizeH)) {
      return true;
    }

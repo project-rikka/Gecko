@@ -1,0 +1,99 @@
+diff --git a/layout/generic/ScrollAnimationRikkaPhysics.cpp b/layout/generic/ScrollAnimationRikkaPhysics.cpp
+new file mode 100644
+index 0000000000..fb446a4267
+--- /dev/null
++++ b/layout/generic/ScrollAnimationRikkaPhysics.cpp
+@@ -0,0 +1,93 @@
++/* This Source Code Form is subject to the terms of the Mozilla Public
++ * License, v. 2.0. If a copy of the MPL was not distributed with this
++ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
++
++#include "ScrollAnimationRikkaPhysics.h"
++
++#include <algorithm>
++#include <cmath>
++
++#include "mozilla/StaticPrefs_general.h"
++
++namespace mozilla {
++
++ScrollAnimationRikkaPhysics::ScrollAnimationRikkaPhysics(
++    Drive aDrive, const nsPoint& aStartPos, nscoord aSmallestVisibleIncrement)
++    : mDrive(aDrive),
++      mOmega(std::sqrt(std::max(
++          double(StaticPrefs::general_smoothScroll_rikka_stiffness()), 1e-6))),
++      mRest(std::max(double(aSmallestVisibleIncrement), 1.0) / 2.0),
++      mDestination(aStartPos) {}
++
++ScrollAnimationRikkaPhysics::Axis ScrollAnimationRikkaPhysics::Axis::After(
++    double aOmega, double aSeconds) const {
++  if (aSeconds <= 0.0) {
++    return *this;
++  }
++  const double reach = mVelocity + aOmega * mGap;
++  const double travelled = mGap + reach * aSeconds;
++  const double decay = std::exp(-aOmega * aSeconds);
++  return Axis{travelled * decay, (reach - aOmega * travelled) * decay};
++}
++
++ScrollAnimationRikkaPhysics::State ScrollAnimationRikkaPhysics::At(
++    const TimeStamp& aTime) const {
++  if (!mSince || aTime <= mSince) {
++    return mState;
++  }
++  const double seconds = (aTime - mSince).ToSeconds();
++  return State{mState.mX.After(mOmega, seconds),
++               mState.mY.After(mOmega, seconds)};
++}
++
++void ScrollAnimationRikkaPhysics::Update(const TimeStamp& aTime,
++                                         const nsPoint& aDestination,
++                                         const nsSize& aCurrentVelocity) {
++  State now = At(aTime);
++  if (!mStarted) {
++    now.mX.mVelocity = aCurrentVelocity.width;
++    now.mY.mVelocity = aCurrentVelocity.height;
++    mStarted = true;
++  }
++  const double movedX = double(aDestination.x) - double(mDestination.x);
++  const double movedY = double(aDestination.y) - double(mDestination.y);
++  now.mX.mGap -= movedX;
++  now.mY.mGap -= movedY;
++  if (mDrive == Drive::Impel) {
++    now.mX.mVelocity += mOmega * movedX;
++    now.mY.mVelocity += mOmega * movedY;
++  }
++  mDestination = aDestination;
++  mState = now;
++  if (!mSince || aTime > mSince) {
++    mSince = aTime;
++  }
++}
++
++void ScrollAnimationRikkaPhysics::ApplyContentShift(
++    const CSSPoint& aShiftDelta) {
++  mDestination += CSSPoint::ToAppUnits(aShiftDelta);
++}
++
++nsSize ScrollAnimationRikkaPhysics::VelocityAt(const TimeStamp& aTime) {
++  const State state = At(aTime);
++  return nsSize(NSToCoordRound(state.mX.mVelocity),
++                NSToCoordRound(state.mY.mVelocity));
++}
++
++nsPoint ScrollAnimationRikkaPhysics::PositionAt(const TimeStamp& aTime) {
++  const State state = At(aTime);
++  return nsPoint(NSToCoordRound(double(mDestination.x) + state.mX.mGap),
++                 NSToCoordRound(double(mDestination.y) + state.mY.mGap));
++}
++
++bool ScrollAnimationRikkaPhysics::IsFinished(const TimeStamp& aTime) {
++  const State state = At(aTime);
++  const auto rests = [this](const Axis& aAxis) {
++    return std::abs(aAxis.mGap) < mRest &&
++           std::abs(aAxis.mVelocity) < mOmega * mRest;
++  };
++  return rests(state.mX) && rests(state.mY);
++}
++
++}

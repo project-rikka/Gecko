@@ -4,6 +4,7 @@ pub mod downloads;
 pub mod editing;
 pub mod extensions;
 pub mod links;
+pub mod network;
 pub mod notifications;
 pub mod storage;
 pub mod user_content;

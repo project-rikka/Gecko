@@ -1,0 +1,22 @@
+diff --git a/dom/events/EventStateManager.cpp b/dom/events/EventStateManager.cpp
+index 30b2680437..7ea101c9ba 100644
+--- a/dom/events/EventStateManager.cpp
++++ b/dom/events/EventStateManager.cpp
+@@ -38,6 +38,7 @@
+ #include "mozilla/StaticPrefs_accessibility.h"
+ #include "mozilla/StaticPrefs_browser.h"
+ #include "mozilla/StaticPrefs_dom.h"
++#include "mozilla/StaticPrefs_general.h"
+ #include "mozilla/StaticPrefs_layout.h"
+ #include "mozilla/StaticPrefs_mousewheel.h"
+ #include "mozilla/StaticPrefs_ui.h"
+@@ -3797,7 +3798,8 @@ void EventStateManager::DoScrollText(
+   ScrollMode mode;
+   switch (aEvent->mScrollType) {
+     case WidgetWheelEvent::SCROLL_DEFAULT:
+-      if (isDeltaModePixel) {
++      if (isDeltaModePixel &&
++          !StaticPrefs::general_smoothScroll_rikka_enabled()) {
+         mode = ScrollMode::Normal;
+       } else {
+         mode = ScrollMode::Smooth;

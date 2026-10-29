@@ -1,0 +1,26 @@
+diff --git a/modules/libpref/init/StaticPrefList.yaml b/modules/libpref/init/StaticPrefList.yaml
+index ea124d8884..4cb6a1fded 100644
+--- a/modules/libpref/init/StaticPrefList.yaml
++++ b/modules/libpref/init/StaticPrefList.yaml
+@@ -7256,6 +7256,21 @@
+   value: 1000
+   mirror: always
+ 
++- name: general.smoothScroll.rikka.enabled
++  type: RelaxedAtomicBool
++  value: false
++  mirror: always
++
++- name: general.smoothScroll.rikka.notch
++  type: AtomicFloat
++  value: 40.0f
++  mirror: always
++
++- name: general.smoothScroll.rikka.stiffness
++  type: AtomicFloat
++  value: 440.0f
++  mirror: always
++
+ #---------------------------------------------------------------------------
+ # Prefs starting with "geo."
+ #---------------------------------------------------------------------------
